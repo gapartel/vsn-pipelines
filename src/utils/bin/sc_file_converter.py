@@ -298,8 +298,8 @@ if INPUT_FORMAT == '10x_spaceranger_visium' and OUTPUT_FORMAT == 'h5ad':
         load_images=False)
 
     # assign 'Gene' and 'CellID' 
-    adata.var["Gene"] = adata.var["gene_ids"].index
-    adata.obs["CellID"] = adata.obs["array_col"].index
+    adata.var["Gene"] = adata.var_names
+    adata.obs["CellID"] = adata.obs_names
 
     # Add/update additional information to observations (obs)
     adata = update_obs(adata=adata, args=args)
