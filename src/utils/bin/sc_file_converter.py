@@ -22,6 +22,7 @@ def str2bool(v):
 in_formats = [
     '10x_cellranger_mex',
     '10x_cellranger_h5',
+    '10x_spaceranger_visium',
     'tsv',
     'csv'
 ]
@@ -286,6 +287,29 @@ elif INPUT_FORMAT == 'h5ad' and OUTPUT_FORMAT == 'h5ad':
     # Sort var index
     adata = adata[:, np.sort(adata.var.index)]
     adata.write_h5ad(filename="{}.h5ad".format(FILE_PATH_OUT_BASENAME))
+
+if INPUT_FORMAT == '10x_spaceranger_visium' and OUTPUT_FORMAT == 'h5ad':
+    #check_10x_spaceranger_visium(path=FILE_PATH_IN)
+    # Convert
+    print("Reading 10x Visium data...")
+    adata = sc.read_visium(
+        FILE_PATH_IN,
+        count_file='filtered_feature_bc_matrix.h5',
+        load_images=False)
+
+    # assign 'Gene' and 'CellID' 
+    adata.var["Gene"] = adata.var["gene_ids"].index
+    adata.obs["CellID"] = adata.obs["array_col"].index
+
+    # Add/update additional information to observations (obs)
+    adata = update_obs(adata=adata, args=args)
+    # Add/update additional information to features (var)
+    adata = update_var(adata=adata, args=args)
+    # Sort var index
+    adata = adata[:, np.sort(adata.var.index)]
+    print("Writing 10x data to h5ad...")
+    adata.write_h5ad(filename="{}.h5ad".format(FILE_PATH_OUT_BASENAME))
+
 elif INPUT_FORMAT == 'loom' and OUTPUT_FORMAT == 'h5ad':
     adata = sc.read_loom(
         FILE_PATH_IN,

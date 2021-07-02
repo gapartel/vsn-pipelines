@@ -60,6 +60,17 @@ workflow getDataChannel {
                 )
             }
         }
+	if(params.data.containsKey("tenx") && params.data.tenx.containsKey("spaceranger_visium")) {
+            if(isOuts(params.data.tenx.spaceranger_visium)) {
+                data = data.concat(
+                    getTenXCellRangerOutsChannel(
+                        params.data.tenx.spaceranger_visium
+                    ).map {
+                        it -> tuple(it[0], it[1], "10x_spaceranger_visium", outputFileFormat, 'NULL')
+                    }
+                )
+            }
+        }
         if(params.data.containsKey("tenx_atac") && params.data.tenx_atac.containsKey("cellranger_mex")) {
             if(isOuts(params.data.tenx_atac.cellranger_mex)) {
                 data = data.concat(
