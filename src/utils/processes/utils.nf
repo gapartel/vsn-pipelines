@@ -235,6 +235,9 @@ process SC__FILE_CONVERTER {
             case "10x_atac_cellranger_mex_outs":
                 // Nothing to be done here
             break;
+	    case "10x_spaceranger_visium":
+                // Nothing to be done here
+            break;
             case "csv":
             case "tsv":
             case "h5ad":
