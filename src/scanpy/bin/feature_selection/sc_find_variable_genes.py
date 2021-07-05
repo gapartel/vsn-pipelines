@@ -25,7 +25,7 @@ parser.add_argument(
     type=str,
     action="store",
     dest="flavor",
-    default="flavor",
+    default="seurat",
     help="Flavor to choose top variable features. Choose one of : 'seurat', 'cell_ranger', 'seurat_v3'"
 )
 
@@ -92,6 +92,11 @@ except IOError:
 #
 # Identify highly variable genes.
 # Expects logarithmized data: https://icb-scanpy.readthedocs-hosted.com/en/stable/api/scanpy.api.pp.highly_variable_genes.html#scanpy.api.pp.highly_variable_genes
+
+# get logarithm if key not specified in anndata
+if "log1p" not in adata.uns.keys():
+    sc.pp.log1p(adata)
+
 
 if args.flavor == "seurat":
     max_disp = np.inf if args.max_disp is None else args.max_disp
