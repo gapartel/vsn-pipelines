@@ -275,6 +275,17 @@ if 'X_pca' in adata.obsm.keys():
         }
     )
 
+if 'X_spatial' in adata.obsm.keys():
+    embedding_id = embeddings_x.shape[1] - 1
+    embeddings_x[str(embedding_id)] = adata.obsm['X_spatial'][:, 0]
+    embeddings_y[str(embedding_id)] = adata.obsm['X_spatial'][:, 1]
+    attrs_metadata['embeddings'].append(
+        {
+            "id": embedding_id,
+            "name": f"Spatial"
+        }
+    )
+
 # Update column attribute Dict
 col_attrs_embeddings = {
     "Embedding": df_to_named_matrix(default_embedding),

@@ -295,18 +295,27 @@ elif INPUT_FORMAT == '10x_spaceranger_visium' and OUTPUT_FORMAT == 'h5ad':
     adata = sc.read_visium(
         FILE_PATH_IN,
         count_file='filtered_feature_bc_matrix.h5',
-        load_images=False)
+        load_images=True)
 
     # assign 'Gene' and 'CellID' 
     adata.var["Gene"] = adata.var_names
     adata.obs["CellID"] = adata.obs_names
 
+    # covert spatial info into float
+    adata.obsm['X_spatial'] = np.float32(adata.obsm['spatial'])
+    
     # Add/update additional information to observations (obs)
     adata = update_obs(adata=adata, args=args)
     # Add/update additional information to features (var)
     adata = update_var(adata=adata, args=args)
     # Sort var index
     adata = adata[:, np.sort(adata.var.index)]
+
+    # adjust spatial coordinates by scale factor
+    for sample_id in adata.uns['spatial'].keys():
+        scfactor = adata.uns['spatial'][sample_id]['scalefactors']['tissue_lowres_scalef']
+        adata[adata.obs['sample_id'] == sample_id].obsm['X_spatial'] = adata[adata.obs['sample_id'] == sample_id].obsm['X_spatial'] * scfactor
+    
     print("Writing 10x data to h5ad...")
     adata.write_h5ad(filename="{}.h5ad".format(FILE_PATH_OUT_BASENAME))
 
