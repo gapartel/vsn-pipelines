@@ -33,9 +33,15 @@ workflow HVG_SELECTION {
         data
 
     main:
-        hvg = data \
-            | SC__SCANPY__FIND_HIGHLY_VARIABLE_GENES \
-            | SC__SCANPY__SUBSET_HIGHLY_VARIABLE_GENES
+        if (params.sc.scanpy.feature_selection.containsKey("subsetHvg") && params.sc.scanpy.feature_selection.subsetHvg == false) {
+            hvg = data \
+                | SC__SCANPY__FIND_HIGHLY_VARIABLE_GENES
+        } else {
+            hvg = data \
+                | SC__SCANPY__FIND_HIGHLY_VARIABLE_GENES \
+                | SC__SCANPY__SUBSET_HIGHLY_VARIABLE_GENES
+        }
+
         out = params.sc.scanpy.containsKey("regress_out") 
             ? SC__SCANPY__REGRESS_OUT( hvg ) : hvg
         scaled = SC__SCANPY__FEATURE_SCALING( out )

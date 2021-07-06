@@ -238,6 +238,7 @@ process SC__FILE_CONVERTER {
 	    case "10x_spaceranger_visium":
                 // Nothing to be done here
             break;
+            case "spatial_csv":
             case "csv":
             case "tsv":
             case "h5ad":

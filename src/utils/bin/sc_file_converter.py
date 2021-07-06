@@ -4,6 +4,7 @@ import argparse
 import os
 import re
 import scanpy as sc
+import pandas as pd
 import numpy as np
 from scipy.sparse import csr_matrix
 
@@ -23,6 +24,7 @@ in_formats = [
     '10x_cellranger_mex',
     '10x_cellranger_h5',
     '10x_spaceranger_visium',
+    'spatial_csv'
     'tsv',
     'csv'
 ]
@@ -130,6 +132,25 @@ FILE_PATH_IN = args.input
 FILE_PATH_OUT_BASENAME = os.path.splitext(args.output.name)[0]
 INPUT_FORMAT = args.input_format
 OUTPUT_FORMAT = args.output_format
+
+def check_spatial_csv_path(path):
+    # Sanity checks
+    if not os.path.isdir(path):
+        raise Exception(
+            "Expecting a directory with coords.csv and matrix.csv files when converting from spatial_csv. {} does not seem to be one.".format(
+                path
+            )
+        )
+    if not os.path.exists(path):
+        raise Exception("VSN ERROR: The given directory {} does not exist.".format(path))
+    if (
+        not os.path.exists(os.path.join(path, "coords.csv")) or not os.path.exists(os.path.join(path, "matrix.csv"))
+    ):
+        raise Exception(
+            "The given directory {} is not a proper folder. No csv file[s] found.".format(
+                path
+            )
+        )
 
 
 def check_10x_cellranger_mex_path(path):
@@ -266,6 +287,49 @@ elif INPUT_FORMAT in ['tsv', 'csv'] and OUTPUT_FORMAT == 'h5ad':
     adata = adata[:, np.sort(adata.var.index)]
     adata.write_h5ad(filename="{}.h5ad".format(FILE_PATH_OUT_BASENAME))
 
+elif INPUT_FORMAT == 'spatial_csv' and OUTPUT_FORMAT == 'h5ad':
+    check_spatial_csv_path(path=FILE_PATH_IN)
+    # Convert
+    print("Reading spatial csv format...")
+    # Coordinates - Expects csv to have coordinate axes as columns and observations as rows
+    coords_df = pd.read_csv(
+        os.path.join(FILE_PATH_IN, "coords.csv"),
+        sep=',',
+        index_col=0
+    )
+    # Data matrix - Expects csv to have features as columns and observations as rows
+    adata = sc.read_csv(
+        os.path.join(FILE_PATH_IN, "matrix.csv"),
+        delimiter=',',
+        first_column_names=True
+    )
+
+    # assign 'Gene' and 'CellID' 
+    adata.var["Gene"] = adata.var_names
+    adata.obs["CellID"] = adata.obs_names
+
+    # assign spatial info
+    adata.obsm['spatial'] = coords_df.values
+    # covert spatial coords into float
+    adata.obsm['X_spatial'] = np.float32(adata.obsm['spatial'])[:,:2]
+    # center data for SCope
+    avg_coords = adata.obsm['X_spatial'].sum(axis=0)/adata.obsm['X_spatial'].shape[0]
+    adata.obsm['X_spatial'] = adata.obsm['X_spatial'] - avg_coords
+    # scale data between [-10,10] for SCope
+    adata.obsm['X_spatial'] = 20*(adata.obsm['X_spatial']-np.min(adata.obsm['X_spatial']))/(np.max(adata.obsm['X_spatial'])-np.min(adata.obsm['X_spatial']))-10
+
+    # Convert to sparse matrix
+    adata.X = csr_matrix(adata.X)
+    # Add additional information
+    adata = update_obs(adata=adata, args=args)
+    # Add/update additional information to features (var)
+    adata = update_var(adata=adata, args=args)
+    # Sort var index
+    adata = adata[:, np.sort(adata.var.index)]
+
+    print("Writing spatial data to h5ad...")
+    adata.write_h5ad(filename="{}.h5ad".format(FILE_PATH_OUT_BASENAME))
+
 elif INPUT_FORMAT == 'h5ad' and OUTPUT_FORMAT == 'h5ad':
     adata = sc.read_h5ad(
         FILE_PATH_IN
@@ -301,8 +365,8 @@ elif INPUT_FORMAT == '10x_spaceranger_visium' and OUTPUT_FORMAT == 'h5ad':
     adata.var["Gene"] = adata.var_names
     adata.obs["CellID"] = adata.obs_names
 
-    # covert spatial info into float
-    adata.obsm['X_spatial'] = np.float32(adata.obsm['spatial'])
+    # covert spatial info into float (take only X,Y)
+    adata.obsm['X_spatial'] = np.float32(adata.obsm['spatial'][:,:2])
     
     # Add/update additional information to observations (obs)
     adata = update_obs(adata=adata, args=args)

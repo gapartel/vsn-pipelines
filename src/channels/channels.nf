@@ -195,6 +195,17 @@ workflow getDataChannel {
                 }
             )
         }
+        if(params.data.containsKey("spatial_csv")) {
+            if(isOuts(params.data.spatial_csv)) {
+                data = data.concat(
+                    getTenXCellRangerOutsChannel(
+                        params.data.spatial_csv
+                    ).map {
+                        it -> tuple(it[0], it[1], "spatial_csv", outputFileFormat, 'NULL')
+                    }
+                )
+            }
+        }
         if(params.data.containsKey("seurat_rds")) {
             data = data.concat(
                 getFileChannel( 

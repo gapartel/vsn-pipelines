@@ -131,6 +131,7 @@ process SC__SCANPY__DIM_REDUCTION {
 			${(processParams.containsKey('nPcs')) ? '--n-pcs ' + processParams.nPcs : ''} \
             --n-jobs ${task.cpus} \
 			${(processParams.containsKey('useFastTsne')) ? '--use-fast-tsne ' + processParams.useFastTsne : ''} \
+                        ${(processParams.containsKey('useHvg')) ? '--use-hvg ' + processParams.useHvg : ''} \
 			$data \
 			"${sampleId}.SC__SCANPY__DIM_REDUCTION_${method}.${!isParamNull(stashedParams) ? uuid + '.' : ''}${processParams.off}"
 		"""

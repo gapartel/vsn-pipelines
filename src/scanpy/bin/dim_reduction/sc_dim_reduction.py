@@ -68,6 +68,16 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "-g", "--use-hvg",
+    type=str2bool,
+    action="store",
+    dest="use_hvg",
+    default=None,
+    help="[PCA], Whether to use highly variable genes only. By default uses them if they have been determined beforehand."
+)
+
+
+parser.add_argument(
     "-n", "--n-pcs",
     type=int,
     action="store",
@@ -122,10 +132,12 @@ except IOError:
 
 if args.method.lower() == "pca":
     # Run PCA
+    print(args.use_hvg)
     sc.tl.pca(
         data=adata,
         n_comps=min(adata.shape[0], args.n_comps),
         svd_solver=args.svd_solver,
+        use_highly_variable=args.use_hvg,
         random_state=args.seed
     )
 elif args.method.lower() == "umap":
