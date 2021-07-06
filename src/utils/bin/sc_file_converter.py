@@ -172,6 +172,52 @@ def check_10x_cellranger_mex_path(path):
             )
         )
 
+    
+def check_10x_spaceranger_visium_path(path):
+    # Sanity checks
+
+    # expected image files in 'spatial' sub dir
+    image_files = ["tissue_hires_image.png", "tissue_lowres_image.png", "aligned_fiducials.jpg", "scalefactors_json.json", "detected_tissue_image.jpg", "tissue_positions_list.csv"]
+    
+    if not os.path.isdir(path):
+        raise Exception(
+            "Expecting a directory with an 'filtered_feature_bc_matrix.h5' file and 'spatial' sub dir containing image data when converting from 10x_spaceranger_visium. {} does not seem to be one.".format(
+                path
+            )
+        )
+    if not os.path.exists(path):
+        raise Exception("VSN ERROR: The given directory {} does not exist.".format(path))
+
+    # check filtered feature bit counts file
+    if not os.path.exists(os.path.join(path, "filtered_feature_bc_matrix.h5")):
+        raise Exception(
+            "The given directory {} is not a proper 10x Genomics Space Ranger folder. No 'filtered_feature_bc_matrix.h5' file found.".format(
+                path
+            )
+        )
+    
+    # check spatail subdir
+    image_path = os.path.join(path, "spatial")
+    
+    if not os.path.isdir(image_path):
+        raise Exception(
+            "Expecting a 'spatial'sub dir containing image data when converting from 10x_spaceranger_visium. {} does not seem to be one.".format(
+                image_path
+            )
+        )
+    if not os.path.exists(image_path):
+        raise Exception("VSN ERROR: The image directory {} does not exist.".format(image_path))
+    # check image files 
+    for img_file in image_files:
+        if not os.path.exists(os.path.join(image_path, img_file)):
+            raise Exception(
+                "The given directory {} is not a proper 10x Genomics Space Ranger image folder. No {} file found.".format(
+                    image_path, img_file
+                )
+            )
+
+    
+    
 
 def add_obs_column(adata, column_name, value):
     # Annotate the file with the sample ID
@@ -310,7 +356,7 @@ elif INPUT_FORMAT == 'spatial_csv' and OUTPUT_FORMAT == 'h5ad':
 
     # assign spatial info
     adata.obsm['spatial'] = coords_df.values
-    # covert spatial coords into float
+    # convert spatial coords into float
     adata.obsm['X_spatial'] = np.float32(adata.obsm['spatial'])[:,:2]
     # center data for SCope
     avg_coords = adata.obsm['X_spatial'].sum(axis=0)/adata.obsm['X_spatial'].shape[0]
@@ -353,7 +399,7 @@ elif INPUT_FORMAT == 'h5ad' and OUTPUT_FORMAT == 'h5ad':
     adata.write_h5ad(filename="{}.h5ad".format(FILE_PATH_OUT_BASENAME))
 
 elif INPUT_FORMAT == '10x_spaceranger_visium' and OUTPUT_FORMAT == 'h5ad':
-    #check_10x_spaceranger_visium(path=FILE_PATH_IN)
+    check_10x_spaceranger_visium_path(path=FILE_PATH_IN)
     # Convert
     print("Reading 10x Visium data...")
     adata = sc.read_visium(
@@ -365,7 +411,7 @@ elif INPUT_FORMAT == '10x_spaceranger_visium' and OUTPUT_FORMAT == 'h5ad':
     adata.var["Gene"] = adata.var_names
     adata.obs["CellID"] = adata.obs_names
 
-    # covert spatial info into float (take only X,Y)
+    # convert spatial info into float (take only X,Y)
     adata.obsm['X_spatial'] = np.float32(adata.obsm['spatial'][:,:2])
     
     # Add/update additional information to observations (obs)
@@ -375,10 +421,11 @@ elif INPUT_FORMAT == '10x_spaceranger_visium' and OUTPUT_FORMAT == 'h5ad':
     # Sort var index
     adata = adata[:, np.sort(adata.var.index)]
 
-    # adjust spatial coordinates by scale factor
-    for sample_id in adata.uns['spatial'].keys():
-        scfactor = adata.uns['spatial'][sample_id]['scalefactors']['tissue_lowres_scalef']
-        adata[adata.obs['sample_id'] == sample_id].obsm['X_spatial'] = adata[adata.obs['sample_id'] == sample_id].obsm['X_spatial'] * scfactor
+    # center data for SCope
+    avg_coords = adata.obsm['X_spatial'].sum(axis=0)/adata.obsm['X_spatial'].shape[0]
+    adata.obsm['X_spatial'] = adata.obsm['X_spatial'] - avg_coords
+    # scale data between [-10,10] for SCope
+    adata.obsm['X_spatial'] = 20*(adata.obsm['X_spatial']-np.min(adata.obsm['X_spatial']))/(np.max(adata.obsm['X_spatial'])-np.min(adata.obsm['X_spatial']))-10
     
     print("Writing 10x data to h5ad...")
     adata.write_h5ad(filename="{}.h5ad".format(FILE_PATH_OUT_BASENAME))
