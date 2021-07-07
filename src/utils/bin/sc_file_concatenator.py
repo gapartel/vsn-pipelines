@@ -76,6 +76,41 @@ if args.format == 'h5ad':
         join=args.join,
         index_unique=index_unique
     )
+    
+    # If spatial dataset arrange 'X_spatial' embedding of each sample in a grid for SCope visualization
+    if 'X_spatial' in adata.obsm.keys():
+        samples = adata.obs.sample_id.unique()
+        n_samples = len(samples)
+        n_x = np.ceil(np.sqrt(n_samples)) if np.sqrt(n_samples) >= np.floor(np.sqrt(n_samples)) else np.floor(np.sqrt(n_samples))
+        n_y = np.ceil(np.sqrt(n_samples)) if np.sqrt(n_samples) >= np.floor(np.sqrt(n_samples))+0.5 else np.floor(np.sqrt(n_samples))
+       
+        x = 0 
+        x_max = y_max = 0
+        X = []
+        Y = []
+        for s in samples:
+            # Reset origin in (0,0)
+            x_s = adata[adata.obs.sample_id==s].obsm['X_spatial'][:,0]-adata[adata.obs.sample_id==s].obsm['X_spatial'][:,0].min()
+            y_s = adata[adata.obs.sample_id==s].obsm['X_spatial'][:,1]-adata[adata.obs.sample_id==s].obsm['X_spatial'][:,1].min()
+
+            X.append(x_s + x_max)
+            Y.append(y_s + y_max)
+
+            x_max = x_max + x_s.max() + 1
+            x = x + 1
+            if x>n_x-1:
+                x = 0
+                x_max = 0
+                y_max = y_max - y_s.max() - 1
+        adata.obsm['X_spatial'] = np.array([np.concatenate(X), np.concatenate(Y)]).T
+
+    # center data for SCope
+    avg_coords = adata.obsm['X_spatial'].sum(axis=0)/adata.obsm['X_spatial'].shape[0]
+    adata.obsm['X_spatial'] = adata.obsm['X_spatial'] - avg_coords
+    # scale data for SCope such that X axis is between [-10,10]
+    scfactor = 20/(np.max(adata.obsm['X_spatial'][:,0])-np.min(adata.obsm['X_spatial'][:,0]))
+    adata.obsm['X_spatial'] = adata.obsm['X_spatial'] * scfactor
+
     # Not casting to float 64 bits can lead to not exact reproducible results. See:
     # - https://github.com/theislab/scanpy/issues/1612
     # - https://github.com/vib-singlecell-nf/vsn-pipelines/issues/295
@@ -83,6 +118,8 @@ if args.format == 'h5ad':
     adata.var.index = adata.var.index.astype(str)
     adata = adata[:, np.sort(adata.var.index)]
     print(f"Total number of cells: {adata.obs.shape[0]}, genes: {adata.var.shape[0]}.")
+
+   
 else:
     raise Exception("VSN ERROR: Concatenation of .{} files is not implemented.".format(args.format))
 
