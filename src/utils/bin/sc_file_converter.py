@@ -361,8 +361,9 @@ elif INPUT_FORMAT == 'spatial_csv' and OUTPUT_FORMAT == 'h5ad':
     # center data for SCope
     avg_coords = adata.obsm['X_spatial'].sum(axis=0)/adata.obsm['X_spatial'].shape[0]
     adata.obsm['X_spatial'] = adata.obsm['X_spatial'] - avg_coords
-    # scale data between [-10,10] for SCope
-    adata.obsm['X_spatial'] = 20*(adata.obsm['X_spatial']-np.min(adata.obsm['X_spatial']))/(np.max(adata.obsm['X_spatial'])-np.min(adata.obsm['X_spatial']))-10
+    # scale data for SCope such that X axis is between [-10,10]
+    scfactor = 20/(np.max(adata.obsm['X_spatial'][:,0])-np.min(adata.obsm['X_spatial'][:,0]))
+    adata.obsm['X_spatial'] = adata.obsm['X_spatial'] * scfactor
 
     # Convert to sparse matrix
     adata.X = csr_matrix(adata.X)
@@ -411,8 +412,8 @@ elif INPUT_FORMAT == '10x_spaceranger_visium' and OUTPUT_FORMAT == 'h5ad':
     adata.var["Gene"] = adata.var_names
     adata.obs["CellID"] = adata.obs_names
 
-    # convert spatial info into float (take only X,Y)
-    adata.obsm['X_spatial'] = np.float32(adata.obsm['spatial'][:,:2])
+    # convert spatial info into float
+    adata.obsm['X_spatial'] = np.float32(adata.obsm['spatial'])
     
     # Add/update additional information to observations (obs)
     adata = update_obs(adata=adata, args=args)
@@ -424,8 +425,9 @@ elif INPUT_FORMAT == '10x_spaceranger_visium' and OUTPUT_FORMAT == 'h5ad':
     # center data for SCope
     avg_coords = adata.obsm['X_spatial'].sum(axis=0)/adata.obsm['X_spatial'].shape[0]
     adata.obsm['X_spatial'] = adata.obsm['X_spatial'] - avg_coords
-    # scale data between [-10,10] for SCope
-    adata.obsm['X_spatial'] = 20*(adata.obsm['X_spatial']-np.min(adata.obsm['X_spatial']))/(np.max(adata.obsm['X_spatial'])-np.min(adata.obsm['X_spatial']))-10
+    # scale data for SCope such that X axis is between [-10,10]
+    scfactor = 20/(np.max(adata.obsm['X_spatial'][:,0])-np.min(adata.obsm['X_spatial'][:,0]))
+    adata.obsm['X_spatial'] = adata.obsm['X_spatial'] * scfactor
     
     print("Writing 10x data to h5ad...")
     adata.write_h5ad(filename="{}.h5ad".format(FILE_PATH_OUT_BASENAME))
