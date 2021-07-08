@@ -71,45 +71,68 @@ if len(cell_ids) != len(np.unique(cell_ids)):
 if args.format == 'h5ad':
     # Concatenate multiple h5ad files
     # Source: https://anndata.readthedocs.io/en/latest/anndata.AnnData.concatenate.html#anndata.AnnData.concatenate
-    adata = files[0].concatenate(
-        files[1:],
-        join=args.join,
-        index_unique=index_unique
-    )
+
+    # check whether uns['spatial'] attributes are set and adapt merging
+    if hasattr(files[0], 'uns') and 'spatial' in files[0].uns.keys():
+        adata = files[0].concatenate(
+            files[1:],
+            uns_merge="unique",
+            batch_categories=[
+                k
+                    for d in [
+                            dat.uns["spatial"] for dat in files
+                    ]
+                    for k, v in d.items()
+            ],
+        )
+    else:
+        adata = files[0].concatenate(
+            files[1:],
+            join=args.join,
+            index_unique=index_unique
+        )
     
     # If spatial dataset arrange 'X_spatial' embedding of each sample in a grid for SCope visualization
-    if 'X_spatial' in adata.obsm.keys():
+    if hasattr(adata, 'obsm') and 'spatial' in adata.obsm.keys():
+
         samples = adata.obs.sample_id.unique()
         n_samples = len(samples)
         n_x = np.ceil(np.sqrt(n_samples)) if np.sqrt(n_samples) >= np.floor(np.sqrt(n_samples)) else np.floor(np.sqrt(n_samples))
         n_y = np.ceil(np.sqrt(n_samples)) if np.sqrt(n_samples) >= np.floor(np.sqrt(n_samples))+0.5 else np.floor(np.sqrt(n_samples))
-       
+
+        # get spacing between samples from first sample to define offset on fixed fraction of width/height, e.g. 10%
+        frac_offset = 0.1
+        s = samples[0]
+        s1_width = adata[adata.obs.sample_id==s].obsm['spatial'][:,0].max()-adata[adata.obs.sample_id==s].obsm['spatial'][:,0].min()
+        s1_height = adata[adata.obs.sample_id==s].obsm['spatial'][:,1].max()-adata[adata.obs.sample_id==s].obsm['spatial'][:,1].min()
+        offset = np.max([s1_width, s1_height]) * frac_offset
+        
         x = 0 
         x_max = y_max = 0
         X = []
         Y = []
         for s in samples:
             # Reset origin in (0,0)
-            x_s = adata[adata.obs.sample_id==s].obsm['X_spatial'][:,0]-adata[adata.obs.sample_id==s].obsm['X_spatial'][:,0].min()
-            y_s = adata[adata.obs.sample_id==s].obsm['X_spatial'][:,1]-adata[adata.obs.sample_id==s].obsm['X_spatial'][:,1].min()
+            x_s = adata[adata.obs.sample_id==s].obsm['spatial'][:,0]-adata[adata.obs.sample_id==s].obsm['spatial'][:,0].min()
+            y_s = adata[adata.obs.sample_id==s].obsm['spatial'][:,1]-adata[adata.obs.sample_id==s].obsm['spatial'][:,1].min()
 
             X.append(x_s + x_max)
             Y.append(y_s + y_max)
 
-            x_max = x_max + x_s.max() + 1
+            x_max = x_max + x_s.max() + offset
             x = x + 1
             if x>n_x-1:
                 x = 0
                 x_max = 0
-                y_max = y_max - y_s.max() - 1
+                y_max = y_max - y_s.max() - offset
         adata.obsm['X_spatial'] = np.array([np.concatenate(X), np.concatenate(Y)]).T
 
-    # center data for SCope
-    avg_coords = adata.obsm['X_spatial'].sum(axis=0)/adata.obsm['X_spatial'].shape[0]
-    adata.obsm['X_spatial'] = adata.obsm['X_spatial'] - avg_coords
-    # scale data for SCope such that X axis is between [-10,10]
-    scfactor = 20/(np.max(adata.obsm['X_spatial'][:,0])-np.min(adata.obsm['X_spatial'][:,0]))
-    adata.obsm['X_spatial'] = adata.obsm['X_spatial'] * scfactor
+        # center data for SCope
+        avg_coords = adata.obsm['X_spatial'].sum(axis=0)/adata.obsm['X_spatial'].shape[0]
+        adata.obsm['X_spatial'] = adata.obsm['X_spatial'] - avg_coords
+        # scale data for SCope such that X axis is between [-10,10]
+        scfactor = 20/(np.max(adata.obsm['X_spatial'][:,0])-np.min(adata.obsm['X_spatial'][:,0]))
+        adata.obsm['X_spatial'] = adata.obsm['X_spatial'] * scfactor
 
     # Not casting to float 64 bits can lead to not exact reproducible results. See:
     # - https://github.com/theislab/scanpy/issues/1612
