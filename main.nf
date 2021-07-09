@@ -1286,3 +1286,42 @@ workflow filter_and_annotate_and_clean {
     )
 
 }
+
+
+// --- SPATIAL WORKFLOWS ---
+
+// run single_sample and spatialDE:
+workflow single_sample_spatialde {
+
+    include {
+        single_sample as SINGLE_SAMPLE;
+    } from './workflows/single_sample' params(params)
+    include {
+        GET_SPATIAL_VARIABLE_GENES as SPATIALDE__GET_SPATIAL_VARIABLE_GENES;
+    } from "./src/spatialde/workflows/spatialde" params(params)
+    include {
+        PUBLISH as PUBLISH_SINGLE_SAMPLE_SCOPE;
+        PUBLISH as PUBLISH_SINGLE_SAMPLE_SCANPY;
+    } from "./src/utils/workflows/utils" params(params)
+
+    getDataChannel | SINGLE_SAMPLE
+    SPATIALDE__GET_SPATIAL_VARIABLE_GENES( SINGLE_SAMPLE.out.scanpyh5ad )    
+    
+    if(params.utils?.publish) {
+        PUBLISH_SINGLE_SAMPLE_SCOPE(
+            SINGLE_SAMPLE.out.scopeloom,
+            "SINGLE_SAMPLE",
+            "loom",
+            null,
+            false
+        )
+        PUBLISH_SINGLE_SAMPLE_SCANPY(
+            SPATIALDE__GET_SPATIAL_VARIABLE_GENES.out,
+            "SPATIALDE__SPATIAL_VARIABLE_GENES",
+            "h5ad",
+            null,
+            false
+        )
+    }  
+
+}

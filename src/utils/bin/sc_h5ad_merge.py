@@ -155,6 +155,13 @@ if "X_tsne" in adatas[0].obsm and all([np.array_equal(adatas[0].obsm["X_tsne"], 
 if "X_umap" in adatas[0].obsm and all([np.array_equal(adatas[0].obsm["X_umap"], _adata.obsm["X_umap"]) for _adata in adatas]):
     print("Adding adata.obsm.X_umap to the merged h5ad...")
     adata.obsm["X_umap"] = adatas[0].obsm["X_umap"]
+# X_spatial
+if "X_spatial" in adatas[0].obsm and all([np.array_equal(adatas[0].obsm["X_spatial"], _adata.obsm["X_spatial"]) for _adata in adatas]):
+    print("Adding adata.obsm.X_spatial to the merged h5ad...")
+    adata.obsm["X_spatial"] = adatas[0].obsm["X_spatial"]
+if "spatial" in adatas[0].obsm and all([np.array_equal(adatas[0].obsm["spatial"], _adata.obsm["spatial"]) for _adata in adatas]):
+    print("Adding adata.obsm.spatial to the merged h5ad...")
+    adata.obsm["spatial"] = adatas[0].obsm["spatial"]
 
 ####################
 # Update varm slot #
