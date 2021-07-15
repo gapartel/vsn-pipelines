@@ -1325,3 +1325,47 @@ workflow single_sample_spatialde {
     }  
 
 }
+
+workflow single_sample_spage_label_transfer {
+    include {
+        single_sample as SINGLE_SAMPLE;
+    } from './workflows/single_sample' params(params)
+    include {
+        SPAGE__LABEL_TRANSFER;
+    } from "./src/spage/workflows/label_transfer" params(params)
+    include {
+        PUBLISH as PUBLISH_SINGLE_SAMPLE_SCOPE;
+        PUBLISH as PUBLISH_SINGLE_SAMPLE_SCANPY;
+    } from "./src/utils/workflows/utils" params(params)
+    include {
+        UPDATE_LOOM_METADATA as UPDATE_LOOM_METADATA_SCOPE;
+    } from "./src/utils/workflows/updateLoomMetadata" params(params)
+    
+    params.utils.update_loom_metadata.annotationKeys = params.sc.spage.label_key
+    params.utils.update_loom_metadata.metricKeys = params.sc.spage.label_key + '_dist'
+
+    getDataChannel | SINGLE_SAMPLE
+    SPAGE__LABEL_TRANSFER( SINGLE_SAMPLE.out.scanpyh5ad, file(params.sc.spage.sc_h5ad) )
+    UPDATE_LOOM_METADATA_SCOPE(
+        SINGLE_SAMPLE.out.scopeloom.map {
+            it -> tuple(it[0], it[1])
+        }.join(SPAGE__LABEL_TRANSFER.out.scanpyh5ad)
+    )
+
+    if(params.utils?.publish) {
+        PUBLISH_SINGLE_SAMPLE_SCOPE(
+            UPDATE_LOOM_METADATA_SCOPE.out,
+            "SPAGE__LABEL_TRANSFER",
+            "loom",
+            null,
+            false
+        )
+        PUBLISH_SINGLE_SAMPLE_SCANPY(
+            SPAGE__LABEL_TRANSFER.out.scanpyh5ad,
+            "SPAGE__LABEL_TRANSFER",
+            "h5ad",
+            null,
+            false
+        )
+    }    
+}
