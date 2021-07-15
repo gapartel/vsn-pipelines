@@ -76,7 +76,6 @@ parser.add_argument(
     help="[PCA], Whether to use highly variable genes only. By default uses them if they have been determined beforehand."
 )
 
-
 parser.add_argument(
     "-n", "--n-pcs",
     type=int,

@@ -1,4 +1,4 @@
-FROM vibsinglecellnf/scanpy:0.6.2
+FROM vibsinglecellnf/scanpy:1.8.1
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN BUILDPKGS="git" && \

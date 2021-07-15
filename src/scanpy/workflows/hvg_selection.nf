@@ -58,7 +58,7 @@ workflow HVG_SELECTION {
         report = GENERATE_REPORT(
             "HVG",
             SC__SCANPY__FIND_HIGHLY_VARIABLE_GENES.out,
-            file(workflow.projectDir + params.sc.scanpy.feature_selection.report_ipynb),
+            file(workflow.projectDir + params.tools.scanpy.feature_selection.report_ipynb),
             false
         )
 
