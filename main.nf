@@ -1359,11 +1359,11 @@ workflow single_sample_spage_label_transfer {
         UPDATE_LOOM_METADATA as UPDATE_LOOM_METADATA_SCOPE;
     } from "./src/utils/workflows/updateLoomMetadata" params(params)
     
-    params.utils.update_loom_metadata.annotationKeys = params.sc.spage.label_key
-    params.utils.update_loom_metadata.metricKeys = params.sc.spage.label_key + '_dist'
+    params.utils.update_loom_metadata.annotationKeys = params.tools.spage.label_key
+    params.utils.update_loom_metadata.metricKeys = params.tools.spage.label_key + '_dist'
 
     getDataChannel | SINGLE_SAMPLE
-    SPAGE__LABEL_TRANSFER( SINGLE_SAMPLE.out.scanpyh5ad, file(params.sc.spage.sc_h5ad) )
+    SPAGE__LABEL_TRANSFER( SINGLE_SAMPLE.out.scanpyh5ad, file(params.tools.spage.sc_h5ad) )
     UPDATE_LOOM_METADATA_SCOPE(
         SINGLE_SAMPLE.out.scopeloom.map {
             it -> tuple(it[0], it[1])

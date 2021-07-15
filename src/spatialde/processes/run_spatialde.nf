@@ -4,7 +4,7 @@ binDir = !params.containsKey("test") ? "${workflow.projectDir}/src/spatialde/bin
 
 process SC__SPATIALDE__VARIABLE_GENES {
     
-    container params.sc.spatialde.container
+    container params.tools.spatialde.container
     publishDir "${params.global.outdir}/data/intermediate", mode: 'symlink', overwrite: true
     label 'compute_resources__cpu'
 
@@ -15,7 +15,7 @@ process SC__SPATIALDE__VARIABLE_GENES {
         tuple val(sampleId), path("${sampleId}.SC__SPATIALDE__VARIABLE_GENES.${processParams.off}")
 
     script:
-	def sampleParams = params.parseConfig(sampleId, params.global, params.sc.spatialde)
+	def sampleParams = params.parseConfig(sampleId, params.global, params.tools.spatialde)
       	    processParams = sampleParams.local
       	"""
      	${binDir}/run_spatialde.py \

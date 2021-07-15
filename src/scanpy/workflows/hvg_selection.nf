@@ -33,7 +33,7 @@ workflow HVG_SELECTION {
         data
 
     main:
-        if (params.sc.scanpy.feature_selection.containsKey("subsetHvg") && params.sc.scanpy.feature_selection.subsetHvg == false) {
+        if (params.tools.scanpy.feature_selection.containsKey("subsetHvg") && params.tools.scanpy.feature_selection.subsetHvg == false) {
             hvg = data \
                 | SC__SCANPY__FIND_HIGHLY_VARIABLE_GENES
         } else {
@@ -42,7 +42,7 @@ workflow HVG_SELECTION {
                 | SC__SCANPY__SUBSET_HIGHLY_VARIABLE_GENES
         }
 
-        out = params.sc.scanpy.containsKey("regress_out") 
+        out = params.tools.scanpy.containsKey("regress_out") 
             ? SC__SCANPY__REGRESS_OUT( hvg ) : hvg
         scaled = SC__SCANPY__FEATURE_SCALING( out )
         PUBLISH_H5AD_HVG_SCALED(

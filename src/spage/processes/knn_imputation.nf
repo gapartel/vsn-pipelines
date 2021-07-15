@@ -2,11 +2,9 @@ nextflow.enable.dsl=2
 
 binDir = !params.containsKey("test") ? "${workflow.projectDir}/src/spage/bin/" : ""
 
-//toolParams = params.sc.template
-
 process KNN_IMPUTATION {
 
-    container params.sc.spage.container
+    container params.tools.spage.container
     publishDir "${params.global.outdir}/data/intermediate", mode: 'symlink', overwrite: true
     label 'compute_resources__cpu'
 
@@ -15,7 +13,7 @@ process KNN_IMPUTATION {
     output:
         tuple val(sampleId), path("${sampleId}.KNN_IMPUTATION.pkl")
     script:
-        def sampleParams = params.parseConfig(sampleId, params.global, params.sc.spage)
+        def sampleParams = params.parseConfig(sampleId, params.global, params.tools.spage)
         processParams = sampleParams.local
         //varsUseAsArguments = processParams.varsUse.collect({ '--vars-use' + ' ' + it }).join(' ')
         """
