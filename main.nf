@@ -1387,3 +1387,39 @@ workflow single_sample_spage_label_transfer {
         )
     }    
 }
+
+
+workflow single_sample_tangram_label_transfer {
+    include {
+        SINGLE_SAMPLE;
+    } from "./src/scanpy/workflows/single_sample" params(params)
+    include {
+        MAP_CELLTYPES as TANGRAM__MAP_CELLTYPES;
+    } from "./src/tangram/workflows/tangram" params(params)
+    include {
+        FILE_CONVERTER as FILE_CONVERTER_TO_SCOPE;
+    } from "./src/utils/workflows/fileConverter" params(params)
+    include {
+        PUBLISH as PUBLISH_SINGLE_SAMPLE_SCOPE;
+    } from "./src/utils/workflows/utils" params(params)
+
+    data = getDataChannel | SC__FILE_CONVERTER
+    SINGLE_SAMPLE (data)
+    TANGRAM__MAP_CELLTYPES( SINGLE_SAMPLE.out.final_processed_data )
+
+    FILE_CONVERTER_TO_SCOPE(
+			TANGRAM__MAP_CELLTYPES.out,
+			'SINGLE_SAMPLE_TANGRAM.final_output',
+			'mergeToSCopeLoom',
+			SINGLE_SAMPLE.out.filtered_data)
+
+    if(params.utils?.publish) {
+        PUBLISH_SINGLE_SAMPLE_SCOPE(
+	    FILE_CONVERTER_TO_SCOPE.out,
+            "TANGRAM_CELLTYPES_scope",
+            "loom",
+            null,
+            false
+        )
+    }
+}
