@@ -15,6 +15,9 @@ include {
 include {
     getDataChannel;
 } from './src/channels/channels' params(params)
+include {
+    getReferenceDataChannel;
+} from './src/channels/channels' params(params)
 
 // run multi-sample with bbknn, output a scope loom file
 workflow bbknn {
@@ -1402,10 +1405,20 @@ workflow single_sample_tangram_label_transfer {
     include {
         PUBLISH as PUBLISH_SINGLE_SAMPLE_SCOPE;
     } from "./src/utils/workflows/utils" params(params)
+    include {
+    	SC__FILE_CONVERTER as SC__FILE_CONVERTER_SPATIAL;
+    } from './src/utils/processes/utils' params(params)
+    include {
+    	SC__FILE_CONVERTER as SC__FILE_CONVERTER_REF;
+    } from './src/utils/processes/utils' params(params)
+    
 
-    data = getDataChannel | SC__FILE_CONVERTER
+
+    data = getDataChannel | SC__FILE_CONVERTER_SPATIAL
+    ref_data = getReferenceDataChannel | SC__FILE_CONVERTER_REF
+
     SINGLE_SAMPLE (data)
-    TANGRAM__MAP_CELLTYPES( SINGLE_SAMPLE.out.final_processed_data )
+    TANGRAM__MAP_CELLTYPES( SINGLE_SAMPLE.out.final_processed_data, ref_data )
 
     FILE_CONVERTER_TO_SCOPE(
 			TANGRAM__MAP_CELLTYPES.out,

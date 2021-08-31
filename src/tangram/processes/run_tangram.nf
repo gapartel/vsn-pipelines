@@ -10,6 +10,7 @@ process TANGRAM__MAP_CELLTYPES {
 
     input:
         tuple val(sampleId), path(f)
+	tuple val(sampleId), path(ref)
 
     output:
         tuple val(sampleId), path("${sampleId}.TANGRAM__CELLTYPES.${processParams.off}")
@@ -19,7 +20,7 @@ process TANGRAM__MAP_CELLTYPES {
       	    processParams = sampleParams.local
       	"""
      	${binDir}/run_tangram.py \
-		-r  $processParams.reference_scrnaseq \
+		-r  ${ref} \
 		${processParams?.device ? "-d " + processParams.device  : ""} \
 		${processParams?.annotation ? "-a " + processParams.annotation  : ""} \
 		${processParams?.gene_selection_method ? "-m " + processParams.gene_selection_method  : ""} \
@@ -28,7 +29,7 @@ process TANGRAM__MAP_CELLTYPES {
 		${processParams?.mapping_mode ? "--mode " + processParams.mapping_mode  : ""} \
 		${processParams?.exp_scrnaseq ? "--exp-ref"  : ""} \
 		${processParams?.exp_spatial ? "--exp-spatial"  : ""} \
-		$f \
+		${f} \
       		${sampleId}.TANGRAM__CELLTYPES.${processParams.off}
       	"""
 }

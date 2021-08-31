@@ -18,9 +18,10 @@ workflow MAP_CELLTYPES {
 
     take:
         data
+	ref_data
 
     main:
-        TANGRAM__MAP_CELLTYPES( data )
+        TANGRAM__MAP_CELLTYPES( data, ref_data)
         PUBLISH_H5AD_TANGRAM_CELLTYPES(
             TANGRAM__MAP_CELLTYPES.out.map {
                 // if stashedParams not there, just put null 3rd arg

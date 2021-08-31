@@ -249,3 +249,48 @@ workflow getDataChannel {
         data
 
 }
+
+
+// for cell type mapping
+workflow getReferenceDataChannel {
+
+    main:
+        data = Channel.empty()
+        // Define the output file format
+        outputFileFormat = "h5ad"
+        // This allows to use it dynamically (i.e.: addParams)
+        if(params.containsKey("off")) {
+            outputFileFormat = params.off
+        } else {
+            // If not dynamically set, we use h5ad by default
+            outputFileFormat = "h5ad"
+            if(params.utils.file_converter.containsKey("off")) {
+                outputFileFormat = params.utils.file_converter.off
+            }
+        }
+
+	if(params.data.containsKey("reference_h5ad")) {
+            data = data.concat(
+                getFileChannel( 
+                    params.data.reference_h5ad.file_paths,
+                    params.data.reference_h5ad.suffix,
+                    'NULL'
+                ).map {
+                    it -> tuple(it[0], it[1], "h5ad", outputFileFormat, 'NULL')
+                }
+            )
+        }
+	if(params.data.containsKey("reference_loom")) {
+            data = data.concat(
+                getFileChannel( 
+                    params.data.reference_loom.file_paths,
+                    params.data.reference_loom.suffix,
+                    'NULL'
+                ).map {
+                    it -> tuple(it[0], it[1], "loom", outputFileFormat, 'NULL')
+                }
+            )
+        }
+   emit:
+	data
+}
