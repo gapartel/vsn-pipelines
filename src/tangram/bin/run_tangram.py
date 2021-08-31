@@ -207,6 +207,13 @@ adata_map = tg.map_cells_to_space(adata_ref, adata_spatial,
 tg.ut.project_cell_annotations(adata_map, adata_spatial, annotation=args.anno)
 df_annotations = adata_spatial.obsm["tangram_ct_pred"]
 
+# asssign best cell type
+idx = [np.array(df_annotations[df_annotations.index == cellid]).argmax() for cellid in df_annotations.index ]
+best_celltypes = df_annotations.columns[idx]
+best_celltype_column_name = "tangram_best_" + args.anno
+
+
+
 # add cell type annotations use 'n_tangram_' prefix
 prefix = "n_tangram_"
 df_annotations = df_annotations.add_prefix(prefix)
@@ -215,6 +222,7 @@ assert adata.obs.index.equals(df_annotations.index)
 # add to obs
 df_annotations.index.name = None
 adata.obs = pd.concat([adata.obs, df_annotations], axis=1)
+adata.obs[best_celltype_column_name] = best_celltypes
 
 # write output
 adata.write_h5ad("{}.h5ad".format(FILE_PATH_OUT_BASENAME))
