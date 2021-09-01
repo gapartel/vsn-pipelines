@@ -10,7 +10,7 @@ process TANGRAM__MAP_CELLTYPES {
 
     input:
         tuple val(sampleId), path(f)
-	tuple val(sampleId), path(ref)
+	tuple val(sampleId2), path(ref)
 
     output:
         tuple val(sampleId), path("${sampleId}.TANGRAM__CELLTYPES.${processParams.off}")

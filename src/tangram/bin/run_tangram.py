@@ -46,6 +46,15 @@ parser.add_argument(
     help='Output spatial h5ad file.'
 )
 
+
+parser.add_argument(
+    "--output-mapping",
+    type=argparse.FileType('w'),
+    dest='outmapf',
+    help='Output mapping h5ad file. (Optional)'
+)
+
+
 parser.add_argument(
     '-r',
     '--reference',
@@ -122,13 +131,23 @@ parser.add_argument(
     help="Exponentiate spatial expression data in case it is log (optional)"
 )
 
+parser.add_argument(
+    '--rank-gene-method',
+    dest='method_rank_genes',
+    choices=['logreg', 't-test', 'wilcoxon', 't-test_overestim_var'],
+    default='wilcoxon',
+    help="Method for computing 'rank_genes_groups' in reference data if not present (default: '%(default)s')"
+)
+
+
 args = parser.parse_args()
 
 # Define the arguments properly
 FILE_PATH_IN = args.input
 FILE_PATH_OUT_BASENAME = os.path.splitext(args.output.name)[0]
 
-
+if args.outmapf:
+    FILE_PATH_MAPPING_OUT_BASENAME = os.path.splitext(args.outmapf.name)[0]
 
 ### main
 
@@ -146,26 +165,42 @@ try:
 except IOError:
     raise Exception("VSN ERROR: Can only handle .h5ad files for refernce single cell.")
 
+# remove cells and genes with 0 counts everywhere in reference
+sc.pp.filter_cells(adata_ref, min_genes=1)
+sc.pp.filter_genes(adata_ref, min_cells=1)
 
+# expontiate reference data if log
+if args.do_exp_ref:
+    adata_ref.X = np.expm1(adata_ref.X)
+
+    
 # get marker genes list
 gene_list = []
 
 if args.method == 'marker_genes':
 
-    if hasattr(adata_ref, 'uns') and 'rank_genes_groups' in adata_ref.uns.keys():
-    
-        if args.anno not in adata_ref.obs.keys():
-            raise Exception("VSN ERROR: Annotation '{}' not found in reference data set.".format(args.anno))
-        else:
-            for cluster in np.unique(adata_ref.obs['cell.type']):
-                list2 = get_best_markerGenes_for_cluster(adata_ref, cluster, max_genes=args.ngenes, thr_adjp=args.qvalue)
-                gene_list  = gene_list + list(set(list2) - set(gene_list))
-            
-            if len(gene_list) < 1:
-                raise Exception("VSN ERROR: No marker genes selected, adjust selection criteria.")
+    if args.anno not in adata_ref.obs.keys():
+        raise Exception("VSN ERROR: Annotation '{}' not found in reference data set.".format(args.anno))
     else:
-        raise Exception("VSN ERROR: .uns['rank_genes_groups'] not found in reference data set.")
-    
+        if not (hasattr(adata_ref, 'uns') and 'rank_genes_groups' in adata_ref.uns.keys()):
+            # compute rank genes groups
+            
+            # get log for ranking genes
+            sc.pp.log1p(adata_ref)
+
+            print("Computing 'rank_genes_groups' ...")
+            sc.tl.rank_genes_groups(adata_ref, args.anno, method=args.method_rank_genes)
+
+            # exponentiate for further processing
+            adata_ref.X = np.expm1(adata_ref.X)
+           
+    for cluster in np.unique(adata_ref.obs[args.anno]):
+        list2 = get_best_markerGenes_for_cluster(adata_ref, cluster, max_genes=args.ngenes, thr_adjp=args.qvalue)
+        gene_list  = gene_list + list(set(list2) - set(gene_list))
+                
+    if len(gene_list) < 1:
+        raise Exception("VSN ERROR: No marker genes selected, adjust selection criteria.")
+        
 elif args.method == 'all':
     gene_list = adata.var_names
 
@@ -183,8 +218,6 @@ adata_spatial.obs['x'] = np.asarray(adata.obsm['spatial'][:,0])
 adata_spatial.obs['y'] = np.asarray(adata.obsm['spatial'][:,1])
 
 # exponentiate expression data
-if args.do_exp_ref:
-    adata_ref.X = np.expm1(adata_ref.X)
 if args.do_exp_spatial:
     adata_spatial.X = np.expm1(adata_spatial.X)
 
@@ -213,7 +246,6 @@ best_celltypes = df_annotations.columns[idx]
 best_celltype_column_name = "tangram_best_" + args.anno
 
 
-
 # add cell type annotations use 'n_tangram_' prefix
 prefix = "n_tangram_"
 df_annotations = df_annotations.add_prefix(prefix)
@@ -226,3 +258,6 @@ adata.obs[best_celltype_column_name] = best_celltypes
 
 # write output
 adata.write_h5ad("{}.h5ad".format(FILE_PATH_OUT_BASENAME))
+
+if args.outmapf:
+    adata_map.write_h5ad("{}.h5ad".format(FILE_PATH_MAPPING_OUT_BASENAME))

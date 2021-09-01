@@ -6,6 +6,8 @@ import re
 import scanpy as sc
 import pandas as pd
 import numpy as np
+import loompy as lp
+import anndata as ann
 from scipy.sparse import csr_matrix
 
 
@@ -433,17 +435,39 @@ elif INPUT_FORMAT == '10x_spaceranger_visium' and OUTPUT_FORMAT == 'h5ad':
     adata.write_h5ad(filename="{}.h5ad".format(FILE_PATH_OUT_BASENAME))
 
 elif INPUT_FORMAT == 'loom' and OUTPUT_FORMAT == 'h5ad':
-    adata = sc.read_loom(
-        FILE_PATH_IN,
-        sparse=True,
-        validate=False
-    )
+
+    # process loom
+    loom = lp.connect(FILE_PATH_IN, validate=False)
+
+    ex_mtx = pd.DataFrame(loom[:, :], index=loom.ra.Gene, columns=loom.ca.CellID).T
+    col_attrs = {k: v for k, v in loom.ca.items()}
+    row_attrs = {k: v for k, v in loom.ra.items()}
+    global_attrs = {k: v for k, v in loom.attrs.items()}
+
+    # close loom
+    loom.close()
+    
+    # create anndata
+    adata = ann.AnnData(X=np.float32(ex_mtx.to_numpy()))
+    adata.obs_names = ex_mtx.index
+    adata.var_names = ex_mtx.columns
+
+    # add column attributes
+    for key, value in row_attrs.items():
+        adata.var[key] = value        
+    # add column attributes
+    for key, value in col_attrs.items():
+        adata.obs[key] = value
+    # add column attributes
+    for key, value in global_attrs.items():
+        adata.uns[key] = value
+        
     # Add additional information
     adata = update_obs(adata=adata, args=args)
     # Add/update additional information to features (var)
     adata = update_var(adata=adata, args=args)
     # Sort var index
-    adata = adata[:, np.sort(adata.var.index)]
+    #adata = adata[:, np.sort(adata.var.index)]
     adata.write_h5ad(filename="{}.h5ad".format(FILE_PATH_OUT_BASENAME))
 else:
     raise Exception(
