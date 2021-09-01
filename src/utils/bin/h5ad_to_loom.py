@@ -482,6 +482,19 @@ elif args.matrix_slot == "raw_X":
 else:
     raise Exception("VSN ERROR: Invalid --matrix-slot. Choose X or X_raw.")
 
+
+# substitute '/' in attribute name as loompy does not allow it
+for key, value in row_attrs.items():
+    if '/' in key:
+        newkey = key.replace('/', '|')
+        row_attrs[newkey] = value
+        del row_attrs[key]
+for key, value in col_attrs.items():
+    if '/' in key:
+        newkey = key.replace('/', '|')
+        col_attrs[newkey] = value
+        del col_attrs[key]
+
 lp.create(
     filename=f"{FILE_PATH_OUT_BASENAME}.loom",
     layers=raw_filtered_mat,
