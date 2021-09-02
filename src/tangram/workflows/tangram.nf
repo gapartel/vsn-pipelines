@@ -23,9 +23,9 @@ workflow MAP_CELLTYPES {
 	ref_data
 
     main:
-        TANGRAM__MAP_CELLTYPES( data, ref_data)
-        PUBLISH_H5AD_TANGRAM_CELLTYPES(
-		TANGRAM__MAP_CELLTYPES.out.map {
+        (mapped, mapping) = TANGRAM__MAP_CELLTYPES( data, ref_data)
+         PUBLISH_H5AD_TANGRAM_CELLTYPES(
+		mapped.map {
                 // if stashedParams not there, just put null 3rd arg
                 it -> tuple(it[0], it[1], it.size() > 2 ? it[2]: null)
             },
@@ -34,7 +34,18 @@ workflow MAP_CELLTYPES {
             "tangram",
             false
         )
+	PUBLISH_H5AD_TANGRAM_MAPPING(
+		mapping.map {
+                // if stashedParams not there, just put null 3rd arg
+                it -> tuple(it[0], it[1], it.size() > 2 ? it[2]: null)
+            },
+            "TANGRAM.mapping_output",
+            "h5ad",
+            "tangram",
+            false
+        )
 	
     emit:
-	TANGRAM__MAP_CELLTYPES.out
+	mapped
+	mapping
 }

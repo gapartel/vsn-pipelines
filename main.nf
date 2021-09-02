@@ -1421,7 +1421,7 @@ workflow single_sample_tangram_label_transfer {
     TANGRAM__MAP_CELLTYPES( SINGLE_SAMPLE.out.final_processed_data, ref_data )
 
     FILE_CONVERTER_TO_SCOPE(
-			TANGRAM__MAP_CELLTYPES.out,
+			TANGRAM__MAP_CELLTYPES.out.mapped,
 			'SINGLE_SAMPLE_TANGRAM.final_output',
 			'mergeToSCopeLoom',
 			SINGLE_SAMPLE.out.filtered_data)
