@@ -1418,7 +1418,8 @@ workflow single_sample_tangram_label_transfer {
     ref_data = getReferenceDataChannel | SC__FILE_CONVERTER_REF
 
     SINGLE_SAMPLE (data)
-    TANGRAM__MAP_CELLTYPES( SINGLE_SAMPLE.out.final_processed_data, ref_data )
+    
+    TANGRAM__MAP_CELLTYPES( SINGLE_SAMPLE.out.final_processed_data.combine(ref_data) )
 
     FILE_CONVERTER_TO_SCOPE(
 			TANGRAM__MAP_CELLTYPES.out.mapped,

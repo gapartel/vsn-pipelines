@@ -19,11 +19,17 @@ include {
 workflow MAP_CELLTYPES {
 
     take:
-        data
-	ref_data
+	input
 
     main:
-        (mapped, mapping) = TANGRAM__MAP_CELLTYPES( data, ref_data)
+
+	input.multiMap { it ->
+		       data: tuple(it[0], it[1])
+		       ref_data: tuple(it[3], it[4])
+		       }
+		       .set{ combData }
+		       
+        (mapped, mapping) = TANGRAM__MAP_CELLTYPES( combData.data, combData.ref_data)
          PUBLISH_H5AD_TANGRAM_CELLTYPES(
 		mapped.map {
                 // if stashedParams not there, just put null 3rd arg
