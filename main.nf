@@ -1349,9 +1349,10 @@ workflow single_sample_spatialde {
 
 workflow single_sample_spage_label_transfer {
     include {
-        single_sample as SINGLE_SAMPLE;
-    } from './workflows/single_sample' params(params)
+        SINGLE_SAMPLE;
+    } from './src/scanpy/workflows/single_sample' params(params)
     include {
+        SPAGE__DATA_INTEGRATION;
         SPAGE__LABEL_TRANSFER;
     } from "./src/spage/workflows/label_transfer" params(params)
     include {
@@ -1359,30 +1360,48 @@ workflow single_sample_spage_label_transfer {
         PUBLISH as PUBLISH_SINGLE_SAMPLE_SCANPY;
     } from "./src/utils/workflows/utils" params(params)
     include {
-        UPDATE_LOOM_METADATA as UPDATE_LOOM_METADATA_SCOPE;
-    } from "./src/utils/workflows/updateLoomMetadata" params(params)
-    
-    params.utils.update_loom_metadata.annotationKeys = params.tools.spage.label_key
-    params.utils.update_loom_metadata.metricKeys = params.tools.spage.label_key + '_dist'
+        FILE_CONVERTER as FILE_CONVERTER_TO_SCOPE;
+    } from "./src/utils/workflows/fileConverter" params(params)
+    include {
+    	SC__FILE_CONVERTER as SC__FILE_CONVERTER_SPATIAL;
+    } from './src/utils/processes/utils' params(params)
+    include {
+    	SC__FILE_CONVERTER as SC__FILE_CONVERTER_REF;
+    } from './src/utils/processes/utils' params(params) 
 
-    getDataChannel | SINGLE_SAMPLE
-    SPAGE__LABEL_TRANSFER( SINGLE_SAMPLE.out.scanpyh5ad, file(params.tools.spage.sc_h5ad) )
-    UPDATE_LOOM_METADATA_SCOPE(
-        SINGLE_SAMPLE.out.scopeloom.map {
+    data = getDataChannel | SC__FILE_CONVERTER_SPATIAL
+    ref_data = getReferenceDataChannel | SC__FILE_CONVERTER_REF
+
+    SINGLE_SAMPLE( data )
+    integration_res = SPAGE__DATA_INTEGRATION(
+        SINGLE_SAMPLE.out.final_processed_data.map {
             it -> tuple(it[0], it[1])
-        }.join(SPAGE__LABEL_TRANSFER.out.scanpyh5ad)
+        },
+        ref_data.collectFile()
+    )
+
+    SPAGE__LABEL_TRANSFER( 
+        integration_res.data,
+        integration_res.knn
+    )
+
+    FILE_CONVERTER_TO_SCOPE (
+        SPAGE__LABEL_TRANSFER.out,
+        'SINGLE_SAMPLE_SPAGE_LABEL_TRANSFER.final_output',
+        'mergeToSCopeLoom',
+        SINGLE_SAMPLE.out.filtered_data
     )
 
     if(params.utils?.publish) {
         PUBLISH_SINGLE_SAMPLE_SCOPE(
-            UPDATE_LOOM_METADATA_SCOPE.out,
+            FILE_CONVERTER_TO_SCOPE.out,
             "SPAGE__LABEL_TRANSFER",
             "loom",
             null,
             false
         )
         PUBLISH_SINGLE_SAMPLE_SCANPY(
-            SPAGE__LABEL_TRANSFER.out.scanpyh5ad,
+            SPAGE__LABEL_TRANSFER.out,
             "SPAGE__LABEL_TRANSFER",
             "h5ad",
             null,
@@ -1391,6 +1410,64 @@ workflow single_sample_spage_label_transfer {
     }    
 }
 
+workflow multi_sample_spage_label_transfer {
+    include {
+        multi_sample as MULTI_SAMPLE;
+    } from './workflows/multi_sample' params(params)
+    include {
+        SPAGE__DATA_INTEGRATION;
+        SPAGE__LABEL_TRANSFER;
+    } from "./src/spage/workflows/label_transfer" params(params)
+    include {
+        PUBLISH as PUBLISH_MULTI_SAMPLE_SCOPE;
+        PUBLISH as PUBLISH_MULTI_SAMPLE_SCANPY;
+    } from "./src/utils/workflows/utils" params(params)
+    include {
+        FILE_CONVERTER as FILE_CONVERTER_TO_SCOPE;
+    } from "./src/utils/workflows/fileConverter" params(params)
+    include {
+        SC__FILE_CONVERTER as SC__FILE_CONVERTER_REF;
+    } from './src/utils/processes/utils' params(params)
+
+    getDataChannel| MULTI_SAMPLE
+    ref_data = getReferenceDataChannel | SC__FILE_CONVERTER_REF
+    
+    integration_res = SPAGE__DATA_INTEGRATION(
+       MULTI_SAMPLE.out.final_processed_data.map {
+            it -> tuple(it[0], it[1])
+        },
+        ref_data.collectFile()
+    )
+ 
+    SPAGE__LABEL_TRANSFER(
+        integration_res.data,
+        integration_res.knn,
+    )
+
+    FILE_CONVERTER_TO_SCOPE (
+        SPAGE__LABEL_TRANSFER.out,
+        'MULTI_SAMPLE__SPAGE__LABEL_TRANSFER.final_output',
+        'mergeToSCopeLoom',
+        MULTI_SAMPLE.out.concatenated_data
+    )
+
+    if(params.utils?.publish) {
+        PUBLISH_MULTI_SAMPLE_SCOPE(
+            FILE_CONVERTER_TO_SCOPE.out,
+            "SPAGE__LABEL_TRANSFER",
+            "loom",
+            null,
+            false
+        )
+        PUBLISH_MULTI_SAMPLE_SCANPY(
+            PAGE__LABEL_TRANSFER.out,
+            "SPAGE__LABEL_TRANSFER",
+            "h5ad",
+            null,
+            false
+        )
+    }
+}
 
 workflow single_sample_tangram_label_transfer {
     include {

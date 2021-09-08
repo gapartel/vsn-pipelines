@@ -3,6 +3,7 @@
 import argparse
 import os
 import scanpy as sc
+print(sc.__version__)
 from SpaGE.principal_vectors import PVComputation
 import scipy.stats as st
 import numpy as np
@@ -19,7 +20,7 @@ parser.add_argument(
 parser.add_argument(
     "sc",
     type=argparse.FileType('r'),
-    help='Input sn/scRNA-seq h5ad file.'
+    help='Input sn/scRNA-seq reference file.'
 )
 
 parser.add_argument(
@@ -80,7 +81,6 @@ except IOError:
     raise Exception("Wrong input format. Expects .h5ad files, got .{}".format(os.path.splitext(FILE_PATH_SPATIAL)[0]))
 
 try:
-    print(FILE_PATH_SC.name)
     ad_sc = sc.read_h5ad(filename=FILE_PATH_SC.name)
 except IOError:
     raise Exception("Wrong input format. Expects .h5ad files, got .{}".format(os.path.splitext(FILE_PATH_SC)[0]))

@@ -269,28 +269,32 @@ workflow getReferenceDataChannel {
             }
         }
 
-	if(params.data.containsKey("reference_h5ad")) {
-            data = data.concat(
-                getFileChannel( 
-                    params.data.reference_h5ad.file_paths,
-                    params.data.reference_h5ad.suffix,
-                    'NULL'
-                ).map {
-                    it -> tuple(it[0], it[1], "h5ad", outputFileFormat, 'NULL')
+	if(params.data.containsKey("reference_data")) {
+            if (params.data.reference_data.containsKey("suffix")) {
+                if (params.data.reference_data.suffix=="h5ad") {
+                    data = data.concat(
+                        getFileChannel( 
+                            params.data.reference_data.file_path,
+                            params.data.reference_data.suffix,
+                            'NULL'
+                        ).map {
+                            it -> tuple(it[0], it[1], "h5ad", outputFileFormat, 'NULL')
+                        }
+                    )
+                } else if (params.data.reference_data.suffix=="loom") {
+                    data = data.concat(
+                        getFileChannel( 
+                            params.data.reference_data.file_path,
+                            params.data.reference_data.suffix,
+                            'NULL'
+                        ).map {
+                            it -> tuple(it[0], it[1], "loom", outputFileFormat, 'NULL')
+                        }
+                    )
                 }
-            )
+            }    
         }
-	if(params.data.containsKey("reference_loom")) {
-            data = data.concat(
-                getFileChannel( 
-                    params.data.reference_loom.file_paths,
-                    params.data.reference_loom.suffix,
-                    'NULL'
-                ).map {
-                    it -> tuple(it[0], it[1], "loom", outputFileFormat, 'NULL')
-                }
-            )
-        }
+        data.ifEmpty { exit 1, "Pipeline cannot run: no reference data provided." }
    emit:
 	data
 }

@@ -21,19 +21,29 @@ include {
 
 //////////////////////////////////////////////////////
 
-workflow SPAGE__LABEL_TRANSFER {
+workflow SPAGE__DATA_INTEGRATION {
 
     take:
         spatial_data
         sc_data
     main:
-        data_integration_res = DATA_INTEGRATION( spatial_data, sc_data )
-        knn_imputation_res = KNN_IMPUTATION( data_integration_res )
-        label_transfer_res = LABEL_TRANSFER( data_integration_res.join(knn_imputation_res) )
+        data = DATA_INTEGRATION( spatial_data, sc_data )
+        knn = KNN_IMPUTATION( data )
+    emit:
+        data
+        knn
+}
 
+workflow SPAGE__LABEL_TRANSFER {
+
+    take:
+        data
+        knn_data
+    main:
+        LABEL_TRANSFER( data.join(knn_data) )
 
         PUBLISH_H5AD_LABEL_TRANSFER(
-            label_transfer_res.map {
+            LABEL_TRANSFER.out.map {
                 // if stashedParams not there, just put null 3rd arg
                 it -> tuple(it[0], it[1], it.size() > 2 ? it[2]: null)
             },
@@ -43,5 +53,19 @@ workflow SPAGE__LABEL_TRANSFER {
             false
         )
     emit:
-        scanpyh5ad = label_transfer_res
+        LABEL_TRANSFER.out
 }
+
+//workflow SPAGE__GENE_IMPUTATION {
+//
+//    take:
+//        data
+//        knn_data
+//    main:
+//        if ( params?.tools?.spage?.imputed_genes ):
+//           imputed_genes = file(params.tools.spage.imputed_genes)
+//            res = GENE_IMPUTATION( res )
+
+//    emit:
+//        scanpyh5ad = res
+//}

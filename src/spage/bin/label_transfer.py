@@ -3,12 +3,11 @@
 import argparse
 import os
 import scanpy as sc
-from sklearn.neighbors import NearestNeighbors
 import numpy as np
 import pandas as pd
 import pickle
 
-parser = argparse.ArgumentParser(description='''Label tranfer from sc/snRNA-seq annotation to spatial data''')
+parser = argparse.ArgumentParser(description='''Label tranfer of sc/snRNA-seq annotations to spatial data''')
 
 parser.add_argument(
     "spatial",

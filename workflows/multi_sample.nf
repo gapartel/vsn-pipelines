@@ -87,22 +87,24 @@ workflow multi_sample {
             SC__FILE_CONVERTER | \
             FILTER_AND_ANNOTATE_AND_CLEAN
 
-        if(scanpyParams.containsKey("filter")) {
-            out = QC_FILTER( out ).filtered // Remove concat
-        }
+        filtered = scanpyParams?.filter ? QC_FILTER( out ).filtered : out 
+
         if(params.utils?.file_concatenator) {
-            out = SC__FILE_CONCATENATOR( 
-                out.map {
+            concatenated = SC__FILE_CONCATENATOR( 
+                filtered.map {
                     it -> it[1]
                 }.toSortedList( 
                     { a, b -> getBaseName(a, "SC") <=> getBaseName(b, "SC") }
                 ) 
             )
+        } else {
+            concatenated = filtered
         }
-        if(scanpyParams.containsKey("data_transformation") && scanpyParams.containsKey("normalization")) {
-            out = NORMALIZE_TRANSFORM( out )
-        }
-        out = HVG_SELECTION( out )
+
+        transformed_normalized = scanpyParams?.data_transformation && scanpyParams?.normalization
+            ? NORMALIZE_TRANSFORM( concatenated ) : concatenated
+
+        out = HVG_SELECTION( transformed_normalized )
         DIM_REDUCTION_PCA( out.scaled )
         NEIGHBORHOOD_GRAPH( DIM_REDUCTION_PCA.out )
         DIM_REDUCTION_TSNE_UMAP( NEIGHBORHOOD_GRAPH.out )
@@ -111,6 +113,9 @@ workflow multi_sample {
             DIM_REDUCTION_TSNE_UMAP.out.dimred_tsne_umap,
             "No Batch Effect Correction"
         )
+        marker_genes = CLUSTER_IDENTIFICATION.out.marker_genes.map {
+            it -> tuple(it[0], it[1], null)
+        }
 
         // Finalize
         FINALIZE(
@@ -184,6 +189,8 @@ workflow multi_sample {
         SC__SCANPY__REPORT_TO_HTML(SC__SCANPY__MERGE_REPORTS.out)
 
     emit:
+        concatenated_data = scanpyParams?.filter && params.utils?.file_concatenator ? concatenated : Channel.empty()
+        final_processed_data = marker_genes
         filteredloom = FINALIZE.out.filteredloom
         scopeloom = scopeloom
         scanpyh5ad = FINALIZE.out.scanpyh5ad
