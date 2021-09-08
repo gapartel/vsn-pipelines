@@ -14,6 +14,7 @@ process TANGRAM__MAP_CELLTYPES {
 
     output:
         tuple val(sampleId), path("${sampleId}.TANGRAM__CELLTYPES.${processParams.off}")
+	tuple val(sampleId), path("${sampleId}.TANGRAM__MAPPING.${processParams.off}")
 
     script:
 	def sampleParams = params.parseConfig(sampleId, params.global, params.tools.tangram)
@@ -21,6 +22,7 @@ process TANGRAM__MAP_CELLTYPES {
       	"""
      	${binDir}/run_tangram.py \
 		-r  ${ref} \
+		--output-mapping ${sampleId}.TANGRAM__MAPPING.${processParams.off} \
 		${processParams?.device ? "-d " + processParams.device  : ""} \
 		${processParams?.annotation ? "-a " + processParams.annotation  : ""} \
 		${processParams?.gene_selection_method ? "-m " + processParams.gene_selection_method  : ""} \
