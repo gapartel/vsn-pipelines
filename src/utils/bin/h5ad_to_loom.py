@@ -227,6 +227,19 @@ for column_attr_key in adata.obs.keys():
 
     col_attrs[column_attr_key] = np.array(vals)
 
+# Add imputed genes as metrics (if present)
+if "imputed_genes" in adata.uns.keys():
+    imp_genes_df = pd.DataFrame(adata.uns['imputed_genes']['values'], columns=adata.uns['imputed_genes']['genes'])
+    for column_attr_key in imp_genes_df.keys():
+        vals = imp_genes_df[column_attr_key].values
+        attrs_metadata["metrics"] = attrs_metadata["metrics"] + [
+            {
+                "name": column_attr_key
+            }
+        ]
+
+        col_attrs[column_attr_key] = np.array(vals)
+
 # EMBEDDINGS
 
 default_embedding = pd.DataFrame(

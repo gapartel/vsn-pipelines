@@ -1354,7 +1354,7 @@ workflow single_sample_spage_label_transfer {
     include {
         SPAGE__DATA_INTEGRATION;
         SPAGE__LABEL_TRANSFER;
-    } from "./src/spage/workflows/label_transfer" params(params)
+    } from "./src/spage/workflows/spage" params(params)
     include {
         PUBLISH as PUBLISH_SINGLE_SAMPLE_SCOPE;
         PUBLISH as PUBLISH_SINGLE_SAMPLE_SCANPY;
@@ -1417,7 +1417,7 @@ workflow multi_sample_spage_label_transfer {
     include {
         SPAGE__DATA_INTEGRATION;
         SPAGE__LABEL_TRANSFER;
-    } from "./src/spage/workflows/label_transfer" params(params)
+    } from "./src/spage/workflows/spage" params(params)
     include {
         PUBLISH as PUBLISH_MULTI_SAMPLE_SCOPE;
         PUBLISH as PUBLISH_MULTI_SAMPLE_SCANPY;
@@ -1460,8 +1460,130 @@ workflow multi_sample_spage_label_transfer {
             false
         )
         PUBLISH_MULTI_SAMPLE_SCANPY(
-            PAGE__LABEL_TRANSFER.out,
+            SPAGE__LABEL_TRANSFER.out,
             "SPAGE__LABEL_TRANSFER",
+            "h5ad",
+            null,
+            false
+        )
+    }
+}
+
+workflow single_sample_spage_gene_imputation {
+    include {
+        SINGLE_SAMPLE;
+    } from './src/scanpy/workflows/single_sample' params(params)
+    include {
+        SPAGE__DATA_INTEGRATION;
+        SPAGE__GENE_IMPUTATION;
+    } from "./src/spage/workflows/spage" params(params)
+    include {
+        PUBLISH as PUBLISH_SINGLE_SAMPLE_SCOPE;
+        PUBLISH as PUBLISH_SINGLE_SAMPLE_SCANPY;
+    } from "./src/utils/workflows/utils" params(params)
+    include {
+        FILE_CONVERTER as FILE_CONVERTER_TO_SCOPE;
+    } from "./src/utils/workflows/fileConverter" params(params)
+    include {
+        SC__FILE_CONVERTER as SC__FILE_CONVERTER_SPATIAL;
+    } from './src/utils/processes/utils' params(params)
+    include {
+        SC__FILE_CONVERTER as SC__FILE_CONVERTER_REF;
+    } from './src/utils/processes/utils' params(params)
+
+    data = getDataChannel | SC__FILE_CONVERTER_SPATIAL
+    ref_data = getReferenceDataChannel | SC__FILE_CONVERTER_REF
+
+    SINGLE_SAMPLE( data )
+    integration_res = SPAGE__DATA_INTEGRATION(
+        SINGLE_SAMPLE.out.final_processed_data.map {
+            it -> tuple(it[0], it[1])
+        },
+        ref_data.collectFile()
+    )
+
+    SPAGE__GENE_IMPUTATION(
+        integration_res.data,
+        integration_res.knn
+    )
+
+    FILE_CONVERTER_TO_SCOPE (
+        SPAGE__GENE_IMPUTATION.out,
+        'SINGLE_SAMPLE_SPAGE_GENE_IMPUTATION.final_output',
+        'mergeToSCopeLoom',
+        SINGLE_SAMPLE.out.filtered_data
+    )
+
+    if(params.utils?.publish) {
+        PUBLISH_SINGLE_SAMPLE_SCOPE(
+            FILE_CONVERTER_TO_SCOPE.out,
+            "SPAGE__GENE_IMPUTATION",
+            "loom",
+            null,
+            false
+        )
+        PUBLISH_SINGLE_SAMPLE_SCANPY(
+            SPAGE__GENE_IMPUTATION.out,
+            "SPAGE__GENE_IMPUTATION",
+            "h5ad",
+            null,
+            false
+        )
+    }
+}
+
+workflow multi_sample_spage_gene_imputation {
+    include {
+        multi_sample as MULTI_SAMPLE;
+    } from './workflows/multi_sample' params(params)
+    include {
+        SPAGE__DATA_INTEGRATION;
+        SPAGE__GENE_IMPUTATION;
+    } from "./src/spage/workflows/spage" params(params)
+    include {
+        PUBLISH as PUBLISH_MULTI_SAMPLE_SCOPE;
+        PUBLISH as PUBLISH_MULTI_SAMPLE_SCANPY;
+    } from "./src/utils/workflows/utils" params(params)
+    include {
+        FILE_CONVERTER as FILE_CONVERTER_TO_SCOPE;
+    } from "./src/utils/workflows/fileConverter" params(params)
+    include {
+        SC__FILE_CONVERTER as SC__FILE_CONVERTER_REF;
+    } from './src/utils/processes/utils' params(params)
+
+    getDataChannel| MULTI_SAMPLE
+    ref_data = getReferenceDataChannel | SC__FILE_CONVERTER_REF
+
+    integration_res = SPAGE__DATA_INTEGRATION(
+       MULTI_SAMPLE.out.final_processed_data.map {
+            it -> tuple(it[0], it[1])
+        },
+        ref_data.collectFile()
+    )
+
+    SPAGE__GENE_IMPUTATION(
+        integration_res.data,
+        integration_res.knn,
+    )
+
+    FILE_CONVERTER_TO_SCOPE (
+        SPAGE__GENE_IMPUTATION.out,
+        'MULTI_SAMPLE__SPAGE__GENE_IMPUTATION.final_output',
+        'mergeToSCopeLoom',
+        MULTI_SAMPLE.out.concatenated_data
+    )
+
+    if(params.utils?.publish) {
+        PUBLISH_MULTI_SAMPLE_SCOPE(
+            FILE_CONVERTER_TO_SCOPE.out,
+            "SPAGE__GENE_IMPUTATION",
+            "loom",
+            null,
+            false
+        )
+        PUBLISH_MULTI_SAMPLE_SCANPY(
+            SPAGE__GENE_IMPUTATION.out,
+            "SPAGE__GENE_IMPUTATION",
             "h5ad",
             null,
             false

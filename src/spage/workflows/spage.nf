@@ -5,6 +5,7 @@ nextflow.enable.dsl=2
 // utils
 include {
     PUBLISH as PUBLISH_H5AD_LABEL_TRANSFER;
+    PUBLISH as PUBLISH_H5AD_GENE_IMPUTATION;
 } from "../../utils/workflows/utils.nf" params(params)
 
 include {
@@ -18,6 +19,10 @@ include {
 include {
     LABEL_TRANSFER;
 } from '../processes/label_transfer.nf' params(params)
+
+include {
+    GENE_IMPUTATION;
+} from '../processes/gene_imputation.nf' params(params)
 
 //////////////////////////////////////////////////////
 
@@ -56,16 +61,25 @@ workflow SPAGE__LABEL_TRANSFER {
         LABEL_TRANSFER.out
 }
 
-//workflow SPAGE__GENE_IMPUTATION {
-//
-//    take:
-//        data
-//        knn_data
-//    main:
-//        if ( params?.tools?.spage?.imputed_genes ):
-//           imputed_genes = file(params.tools.spage.imputed_genes)
-//            res = GENE_IMPUTATION( res )
+workflow SPAGE__GENE_IMPUTATION {
 
-//    emit:
-//        scanpyh5ad = res
-//}
+    take:
+        data
+        knn_data
+    main:
+        GENE_IMPUTATION( data.join(knn_data) )
+
+        PUBLISH_H5AD_GENE_IMPUTATION(
+            GENE_IMPUTATION.out.map {
+                // if stashedParams not there, just put null 3rd arg
+                it -> tuple(it[0], it[1], it.size() > 2 ? it[2]: null)
+            },
+            "SPAGE.gene_imputation_output",
+            "h5ad",
+            "spage",
+            false
+        )
+
+    emit:
+        GENE_IMPUTATION.out
+}
