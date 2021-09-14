@@ -25,7 +25,6 @@ process DATA_INTEGRATION {
             ${f1} \
             ${f2} \
             ${processParams?.npvs ? "--npvs "+ processParams.npvs : "" } \
-            ${processParams?.knn ? "--knn "+ processParams.knn : "" } \
             ${processParams?.th ? "--th "+ processParams.th : "" } \
             ${processParams?.normalize_sc ? "--norm "+ processParams.normalize_sc : "" } \
             ${sampleId}.DATA_INTEGRATION_SPATIAL.${processParams.off} \

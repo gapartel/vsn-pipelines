@@ -149,7 +149,7 @@ def check_spatial_csv_path(path):
         not os.path.exists(os.path.join(path, "coords.csv")) or not os.path.exists(os.path.join(path, "matrix.csv"))
     ):
         raise Exception(
-            "The given directory {} is not a proper folder. No csv file[s] found.".format(
+            "Expecting a directory with coords.csv and matrix.csv files when converting from spatial_csv. The given directory {} is not a proper folder. No csv file[s] found.".format(
                 path
             )
         )
