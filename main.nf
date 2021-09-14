@@ -1591,6 +1591,71 @@ workflow multi_sample_spage_gene_imputation {
     }
 }
 
+workflow multi_sample_spage {
+    include {
+        multi_sample as MULTI_SAMPLE;
+    } from './workflows/multi_sample' params(params)
+    include {
+        SPAGE__DATA_INTEGRATION;
+        SPAGE__LABEL_TRANSFER;
+        SPAGE__GENE_IMPUTATION;
+    } from "./src/spage/workflows/spage" params(params)
+    include {
+        PUBLISH as PUBLISH_MULTI_SAMPLE_SCOPE;
+        PUBLISH as PUBLISH_MULTI_SAMPLE_SCANPY;
+    } from "./src/utils/workflows/utils" params(params)
+    include {
+        FILE_CONVERTER as FILE_CONVERTER_TO_SCOPE;
+    } from "./src/utils/workflows/fileConverter" params(params)
+    include {
+        SC__FILE_CONVERTER as SC__FILE_CONVERTER_REF;
+    } from './src/utils/processes/utils' params(params)
+
+    getDataChannel| MULTI_SAMPLE
+    ref_data = getReferenceDataChannel | SC__FILE_CONVERTER_REF
+
+    integration_res = SPAGE__DATA_INTEGRATION(
+       MULTI_SAMPLE.out.final_processed_data.map {
+            it -> tuple(it[0], it[1])
+        },
+        ref_data.collectFile()
+    )
+
+    SPAGE__LABEL_TRANSFER(
+        integration_res.data,
+        integration_res.knn
+    )
+
+    SPAGE__GENE_IMPUTATION(
+        SPAGE__LABEL_TRANSFER.out.combine(ref_data.collectFile()),
+        integration_res.knn
+    )
+
+    FILE_CONVERTER_TO_SCOPE (
+        SPAGE__GENE_IMPUTATION.out,
+        'MULTI_SAMPLE__SPAGE__GENE_IMPUTATION.final_output',
+        'mergeToSCopeLoom',
+        MULTI_SAMPLE.out.concatenated_data
+    )
+
+    if(params.utils?.publish) {
+        PUBLISH_MULTI_SAMPLE_SCOPE(
+            FILE_CONVERTER_TO_SCOPE.out,
+            "SPAGE__GENE_IMPUTATION",
+            "loom",
+            null,
+            false
+        )
+        PUBLISH_MULTI_SAMPLE_SCANPY(
+            SPAGE__GENE_IMPUTATION.out,
+            "SPAGE__GENE_IMPUTATION",
+            "h5ad",
+            null,
+            false
+        )
+    }
+}
+
 workflow single_sample_tangram_label_transfer {
     include {
         SINGLE_SAMPLE;
