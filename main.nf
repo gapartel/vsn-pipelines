@@ -1357,6 +1357,9 @@ workflow single_sample_spage {
         SPAGE__GENE_IMPUTATION;
     } from "./src/spage/workflows/spage" params(params)
     include {
+        SQUIDPY_ANALYSIS;
+    } from './src/squidpy/workflows/squidpy_analysis' params(params)
+    include {
         PUBLISH as PUBLISH_SINGLE_SAMPLE_SCOPE;
         PUBLISH as PUBLISH_SINGLE_SAMPLE_SCANPY;
     } from "./src/utils/workflows/utils" params(params)
@@ -1386,8 +1389,12 @@ workflow single_sample_spage {
             integration_res.data,
             integration_res.knn
         )
+        if (params.tools?.spage?.spatial_statistics==true){
+            SQUIDPY_ANALYSIS(SPAGE__LABEL_TRANSFER.out)
+        } 
         out_h5ad = SPAGE__LABEL_TRANSFER.out
         data = SPAGE__LABEL_TRANSFER.out.combine(ref_data.collectFile())
+        
     } else {
         data = integration_res.data
     }
