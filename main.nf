@@ -1520,8 +1520,11 @@ workflow single_sample_tangram_label_transfer {
         SINGLE_SAMPLE;
     } from "./src/scanpy/workflows/single_sample" params(params)
     include {
-        MAP_CELLTYPES as TANGRAM__MAP_CELLTYPES;
+        PROJECT_CELLTYPES as TANGRAM__MAP_CELLTYPES;
     } from "./src/tangram/workflows/tangram" params(params)
+    include {
+    	TANGRAM__PREPARE_SCRNA as TANGRAM__PERPARE_REF;
+    } from "./src/tangram/processes/run_tangram.nf" params(params)
     include {
         FILE_CONVERTER as FILE_CONVERTER_TO_SCOPE;
     } from "./src/utils/workflows/fileConverter" params(params)
@@ -1538,7 +1541,7 @@ workflow single_sample_tangram_label_transfer {
 
 
     data = getDataChannel | SC__FILE_CONVERTER_SPATIAL
-    ref_data = getReferenceDataChannel | SC__FILE_CONVERTER_REF
+    ref_data = getReferenceDataChannel | SC__FILE_CONVERTER_REF | TANGRAM__PERPARE_REF
 
     SINGLE_SAMPLE (data)
     
