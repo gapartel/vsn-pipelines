@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+#
+#
+#
+import argparse
+import os
+import warnings
+import scanpy as sc
+import pandas as pd
+import numpy as np
+
+### options
+parser = argparse.ArgumentParser(description='')
+
+parser.add_argument(
+    "input",
+    type=argparse.FileType('r'),
+    help='Input scRNAseq h5ad file.'
+)
+
+parser.add_argument(
+    "output",
+    type=argparse.FileType('w'),
+    help='Output spatial h5ad file.'
+)
+
+parser.add_argument(
+    '-m',
+    '--method-gene-selection',
+    dest='method',
+    choices=['marker_genes', 'list', 'all'],
+    default='marker_genes',
+    help="Method for selecting genes for cell type mapping (default: '%(default)s')"
+)
+
+parser.add_argument(
+    '-a',
+    '--annotation-celltype',
+    dest='anno',
+    type=str,
+    default='cell.type',
+    help="Annotation for selecting from marker genes (default: '%(default)s')"
+)
+
+parser.add_argument(
+    "--exp-ref",
+    dest='do_exp_ref',
+    action="store_true",
+    help="Exponentiate reference expression data in case it is log (optional)"
+)
+
+parser.add_argument(
+    '--rank-gene-method',
+    dest='method_rank_genes',
+    choices=['logreg', 't-test', 'wilcoxon', 't-test_overestim_var'],
+    default='wilcoxon',
+    help="Method for computing 'rank_genes_groups' in reference data if not present (default: '%(default)s')"
+)
+
+
+args = parser.parse_args()
+
+# Define the arguments properly
+FILE_PATH_IN = args.input
+FILE_PATH_OUT_BASENAME = os.path.splitext(args.output.name)[0]
+
+
+### main
+
+# I/O
+# Expects h5ad file
+try:
+    adata_ref = sc.read_h5ad(filename=FILE_PATH_IN.name)
+except IOError:
+    raise Exception("VSN ERROR: Can only handle .h5ad files.")
+
+# remove cells and genes with 0 counts everywhere in reference
+sc.pp.filter_cells(adata_ref, min_genes=1)
+sc.pp.filter_genes(adata_ref, min_cells=1)
+
+# expontiate reference data if log
+if args.do_exp_ref:
+    adata_ref.X = np.expm1(adata_ref.X)
+
+    
+# get marker genes list
+gene_list = []
+
+if args.method == 'marker_genes':
+
+    if args.anno not in adata_ref.obs.keys():
+        raise Exception("VSN ERROR: Annotation '{}' not found in reference data set.".format(args.anno))
+    else:
+        if not (hasattr(adata_ref, 'uns') and 'rank_genes_groups' in adata_ref.uns.keys()):
+            # compute rank genes groups
+            
+            # get log for ranking genes
+            sc.pp.log1p(adata_ref)
+
+            print("Computing 'rank_genes_groups' ...")
+            sc.tl.rank_genes_groups(adata_ref, args.anno, method=args.method_rank_genes)
+            print("Done.")
+            
+            # exponentiate for further processing
+            adata_ref.X = np.expm1(adata_ref.X)
+            
+
+# write output
+adata_ref.write("{}.h5ad".format(FILE_PATH_OUT_BASENAME))
