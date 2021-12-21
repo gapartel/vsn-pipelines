@@ -94,7 +94,14 @@ try:
 except IOError:
     raise Exception("Wrong input format. Expects .h5ad files, got .{}".format(os.path.splitext(FILE_PATH_SPATIAL)[0]))
 
-sq.gr.spatial_neighbors( adata,
+# If multiple sample generate disjoint spatial graphs
+
+sample_ids = adata.obs.sample_id.unique()
+if len(sample_ids)>1:
+    ad_l = []
+    for s in adata.obs.sample_id.unique():
+        adata_tmp = adata[adata.obs.sample_id==s].copy()
+        sq.gr.spatial_neighbors( adata_tmp,
                          spatial_key=args.spatial_key, 
                          coord_type=args.coord_type,
                          n_neighs=args.n_neighs, 
@@ -104,6 +111,20 @@ sq.gr.spatial_neighbors( adata,
                          set_diag=args.set_diag,
                          key_added=args.spatial_key,
                          copy=False )
+        ad_l.append(adata_tmp)
+    adata = ad.concat(ad_l, uns_merge='same', pairwise=True)
+else:
+    sq.gr.spatial_neighbors( adata,
+                         spatial_key=args.spatial_key, 
+                         coord_type=args.coord_type,
+                         n_neighs=args.n_neighs, 
+                         radius=args.radius,
+                         delaunay=args.delaunay,
+                         n_rings=args.n_rings,
+                         set_diag=args.set_diag,
+                         key_added=args.spatial_key,
+                         copy=False )
+
 
 # Write output
 adata.write_h5ad("{}.h5ad".format(FILE_PATH_OUT_SPATIAL_BASENAME))

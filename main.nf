@@ -1454,6 +1454,9 @@ workflow multi_sample_spage {
     include {
         SC__FILE_CONVERTER as SC__FILE_CONVERTER_REF;
     } from './src/utils/processes/utils' params(params)
+    include {
+        SQUIDPY_ANALYSIS;
+    } from './src/squidpy/workflows/squidpy_analysis' params(params)
 
     getDataChannel| MULTI_SAMPLE
     out_h5ad = MULTI_SAMPLE.out.scanpyh5ad
@@ -1468,12 +1471,14 @@ workflow multi_sample_spage {
         ref_data.collectFile()
     )
     
-
     if (params.tools?.spage?.label_transfer==true){ 
         SPAGE__LABEL_TRANSFER(
             integration_res.data,
             integration_res.knn
         )
+        if (params.tools?.spage?.spatial_statistics==true){
+            SQUIDPY_ANALYSIS(SPAGE__LABEL_TRANSFER.out)
+        }
         out_h5ad = SPAGE__LABEL_TRANSFER.out
         data = SPAGE__LABEL_TRANSFER.out.combine(ref_data.collectFile())
     } else {
