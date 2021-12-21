@@ -9,6 +9,9 @@ include {
     SC__H5AD_TO_LOOM;
 } from './../processes/h5adToLoom.nf' params(params)
 include {
+    SC__H5AD_TO_LOOM_SIMPLE;
+} from './../processes/h5adToLoom.nf' params(params)
+include {
     SC__H5AD_MERGE
 } from "./../processes/h5adMerge.nf" params(params)
 include {
@@ -48,6 +51,12 @@ workflow FILE_CONVERTER {
                     }, 
                     by: 0
                 )
+            )
+	} else if(outputFormat == "mergeToSCopeLoomSimple") {
+            out = SC__H5AD_TO_LOOM_SIMPLE(
+               	data.map {
+               	    it -> tuple(it[0], it[1])
+              	 } 
             )
         } else if(outputFormat == "mergeToScanpyH5ad") {
             out = SC__H5AD_MERGE(

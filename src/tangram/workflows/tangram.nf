@@ -40,12 +40,16 @@ workflow PROJECT_CELLTYPES {
 
 	input.multiMap { it ->
 		       data: tuple(it[0], it[1])
-		       ref_data: tuple(it[3], it[4])
+		       filtered: tuple(it[0], it[3])
+		       ref_data: tuple(it[4], it[5])
 		       }
 		       .set{ combData }
 
+        data = combData.data
+	filtered = combData.filtered
 	ref = combData.ref_data
-	spatial = TANGRAM__PREPARE_SPATIAL( combData.data )
+	
+	spatial = TANGRAM__PREPARE_SPATIAL( data, filtered )
 	mapping = TANGRAM__COMPUTE_MAPPING(spatial, ref)
         mapped  = TANGRAM__PROJECT_CELLTYPES( spatial, ref, mapping)
 
@@ -74,8 +78,11 @@ workflow PROJECT_CELLTYPES {
             "tangram",
             false
         )
+
+	mapped2 = mapped
 	
     emit:
 	mapped
 	mapping
+	mapped2
 }

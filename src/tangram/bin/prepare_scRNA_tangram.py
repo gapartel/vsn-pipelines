@@ -43,10 +43,11 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--exp-ref",
-    dest='do_exp_ref',
-    action="store_true",
-    help="Exponentiate reference expression data in case it is log (optional)"
+    "--normalize",
+    dest='do_normalize',
+    choices=['true', 'false'],
+    default='true',
+    help="Normalize data for computing gene rank groups."
 )
 
 parser.add_argument(
@@ -78,9 +79,8 @@ except IOError:
 sc.pp.filter_cells(adata_ref, min_genes=1)
 sc.pp.filter_genes(adata_ref, min_cells=1)
 
-# expontiate reference data if log
-if args.do_exp_ref:
-    adata_ref.X = np.expm1(adata_ref.X)
+# copy expression data
+rawX = adata_ref.X.copy()
 
     
 # get marker genes list
@@ -93,17 +93,20 @@ if args.method == 'marker_genes':
     else:
         if not (hasattr(adata_ref, 'uns') and 'rank_genes_groups' in adata_ref.uns.keys()):
             # compute rank genes groups
-            
+
+            # normalize
+            if args.do_normalize == 'true':
+                sc.pp.normalize_total(adata_ref)
+                
             # get log for ranking genes
             sc.pp.log1p(adata_ref)
 
             print("Computing 'rank_genes_groups' ...")
             sc.tl.rank_genes_groups(adata_ref, args.anno, method=args.method_rank_genes)
             print("Done.")
-            
-            # exponentiate for further processing
-            adata_ref.X = np.expm1(adata_ref.X)
-            
+
+            # copy back raw data
+            adata_ref.X = rawX.copy()
 
 # write output
 adata_ref.write("{}.h5ad".format(FILE_PATH_OUT_BASENAME))

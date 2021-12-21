@@ -41,6 +41,40 @@ process SC__H5AD_TO_LOOM {
 
 }
 
+
+process SC__H5AD_TO_LOOM_SIMPLE {
+
+	container params.tools.scanpy.container
+    publishDir "${params.global.outdir}/loom", mode: 'link', overwrite: true, saveAs: { filename -> "${sampleId}.SCope_output.loom" }
+    label 'compute_resources__mem'
+
+	input:
+		// Expects:
+		// - data to be one or more h5ad files containing the final results to be stored in the loom
+		tuple \
+			val(sampleId), \
+			path(data)
+
+	output:
+		tuple \
+			val(sampleId), \
+			path("${sampleId}.SC__H5AD_TO_LOOM.loom")
+
+	script:
+		"""
+		${binDir}/h5ad_to_loom_simple.py \
+			${params.utils?.scope.genome.length() > 0 ? '--nomenclature "' + params.utils?.scope.genome + '"' : ''} \
+			${params.utils?.scope.tree.level_1.length() > 0 ? '--scope-tree-level-1 "' + params.utils.scope.tree.level_1 + '"'  : ''} \
+			${params.utils?.scope.tree.level_2.length() > 0 ? '--scope-tree-level-2 "' + params.utils.scope.tree.level_2 + '"'  : ''} \
+			${params.utils?.scope.tree.level_3.length() > 0  ? '--scope-tree-level-3 "' + params.utils.scope.tree.level_3 + '"'  : ''} \
+			${params.utils?.scope?.markers?.log_fc_threshold ? '--markers-log-fc-threshold ' + params.utils.scope.markers.log_fc_threshold : ''} \
+			${params.utils?.scope?.markers?.fdr_threshold ? '--markers-fdr-threshold ' + params.utils.scope.markers.fdr_threshold : ''} \
+			$data \
+			"${sampleId}.SC__H5AD_TO_LOOM.loom"
+		"""
+
+}
+
 process SC__H5AD_TO_FILTERED_LOOM {
 
 	container params.tools.scanpy.container

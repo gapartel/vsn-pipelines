@@ -1537,21 +1537,21 @@ workflow single_sample_tangram_label_transfer {
     include {
     	SC__FILE_CONVERTER as SC__FILE_CONVERTER_REF;
     } from './src/utils/processes/utils' params(params)
-    
 
 
     data = getDataChannel | SC__FILE_CONVERTER_SPATIAL
     ref_data = getReferenceDataChannel | SC__FILE_CONVERTER_REF | TANGRAM__PERPARE_REF
 
     SINGLE_SAMPLE (data)
-    
-    TANGRAM__MAP_CELLTYPES( SINGLE_SAMPLE.out.final_processed_data.combine(ref_data) )
+
+    input_spatial = SINGLE_SAMPLE.out.final_processed_data.combine(SINGLE_SAMPLE.out.filtered_data, by: 0)
+    TANGRAM__MAP_CELLTYPES( input_spatial.combine(ref_data) )
 
     FILE_CONVERTER_TO_SCOPE(
 			TANGRAM__MAP_CELLTYPES.out.mapped,
 			'SINGLE_SAMPLE_TANGRAM.final_output',
-			'mergeToSCopeLoom',
-			SINGLE_SAMPLE.out.filtered_data)
+			'mergeToSCopeLoomSimple',
+			null)
 
     if(params.utils?.publish) {
         PUBLISH_SINGLE_SAMPLE_SCOPE(
