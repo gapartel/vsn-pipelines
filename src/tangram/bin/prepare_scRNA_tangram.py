@@ -108,5 +108,13 @@ if args.method == 'marker_genes':
             # copy back raw data
             adata_ref.X = rawX.copy()
 
+# to prevent pot. encoding issue substitute tuple entries with strings
+for obskey in adata_ref.obs.keys():
+    if isinstance(adata_ref.obs[obskey][0], tuple):
+        adata_ref.obs[obskey] = [ str(tupl) for tupl in adata_ref.obs[obskey] ]
+for varkey in adata_ref.var.keys():
+    if isinstance(adata_ref.var[varkey][0], tuple):
+        adata_ref.var[varkey] = [ str(tupl) for tupl in adata_ref.var[varkey] ]
+
 # write output
 adata_ref.write("{}.h5ad".format(FILE_PATH_OUT_BASENAME))

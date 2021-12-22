@@ -62,7 +62,7 @@ adata_spatial.obs['x'] = np.asarray(adata.obsm['spatial'][:,0])
 adata_spatial.obs['y'] = np.asarray(adata.obsm['spatial'][:,1])
 
 # add raw spatial data
-adata_spatial.X = adata_raw.X.copy()
+adata_spatial.X = adata_raw[:, adata_spatial.var.index].X.copy()
 
 # write output
 adata_spatial.write_h5ad("{}.h5ad".format(FILE_PATH_OUT_BASENAME))
