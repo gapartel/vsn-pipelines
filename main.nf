@@ -1333,17 +1333,35 @@ workflow single_sample_spatialde {
         PUBLISH as PUBLISH_SINGLE_SAMPLE_SCOPE;
         PUBLISH as PUBLISH_SINGLE_SAMPLE_SCANPY;
     } from "./src/utils/workflows/utils" params(params)
+    include {
+        GENERATE_REPORT as GENERATE_REPORT_VARIABLE_GENES;
+	GENERATE_REPORT as GENERATE_REPORT_AEH;
+    } from "./src/spatialde/workflows/create_report" params(params)
+    
 
     getDataChannel | SC__FILE_CONVERTER_SPATIAL | SINGLE_SAMPLE
     out = SPATIALDE__GET_SPATIAL_VARIABLE_GENES( SINGLE_SAMPLE.out.filtered_data )
 
-    if(params.tools?.spatialde?.run_aeh)
+    if(params.tools?.spatialde?.report_ipynb)
     {
-	out = SPATIALDE__ADD_SPATIAL_PATTERNS(out, SINGLE_SAMPLE.out.final_processed_data )
+	GENERATE_REPORT_VARIABLE_GENES("variable_genes", out, file(workflow.projectDir + params.tools.spatialde.report_ipynb) )
     }
 
+    if(params.tools?.spatialde?.run_aeh)
+    {
+	if(params.tools?.spatialde?.report_aeh_ipynb)
+    	{
+		GENERATE_REPORT_AEH("aeh", out, file(workflow.projectDir + params.tools.spatialde.report_aeh_ipynb))
+    	}
+	
+	scopeout = SPATIALDE__ADD_SPATIAL_PATTERNS(out, SINGLE_SAMPLE.out.final_processed_data )	
+    } else {
+        scopeout = SINGLE_SAMPLE.out.final_processed_data
+    }
+    
+
     FILE_CONVERTER_TO_SCOPE(
-			out,
+			scopeout,
 			'SINGLE_SAMPLE_SPATIALDE.final_output',
 			'mergeToSCopeLoomSimple',
 			null)

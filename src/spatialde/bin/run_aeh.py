@@ -119,6 +119,9 @@ patterns.columns = patterns.columns.astype(str)
 # add results to uns
 adata.uns['spatialDE_AEH_histology_results'] = histology_results
 adata.uns['spatialDE_AEH_patterns'] = patterns
+# add parameters to anndata
+adata.uns['spatialDE_parameters']['l'] = lval
+adata.uns['spatialDE_parameters']['c'] = cval
 
 # write output
 adata.write_h5ad("{}.h5ad".format(FILE_PATH_OUT_BASENAME))

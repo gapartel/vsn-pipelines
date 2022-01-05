@@ -145,6 +145,13 @@ results['is_signif'] = dict_signif['is_signif']
 adata.uns['spatialDE'] = results
 # update X with (normalized) counts
 adata.X = scipy.sparse.csr_matrix(counts)
+# add parameters to anndata
+adata.uns['spatialDE_parameters'] = {}
+adata.uns['spatialDE_parameters']['qval_adjust_method'] = method_qval
+adata.uns['spatialDE_parameters']['thr_qval'] = thr_qval
+adata.uns['spatialDE_parameters']['min_fsv'] = min_fsv
+adata.uns['spatialDE_parameters']['run_naivede'] = run_naivede
+adata.uns['spatialDE_parameters']['min_cells'] = min_cells
 
 # write output
 adata.write_h5ad("{}.h5ad".format(FILE_PATH_OUT_BASENAME))
