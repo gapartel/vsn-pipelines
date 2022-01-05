@@ -1315,36 +1315,56 @@ workflow filter_and_annotate_and_clean {
 workflow single_sample_spatialde {
 
     include {
-        single_sample as SINGLE_SAMPLE;
-    } from './workflows/single_sample' params(params)
+        SINGLE_SAMPLE;
+    } from "./src/scanpy/workflows/single_sample" params(params)
     include {
         GET_SPATIAL_VARIABLE_GENES as SPATIALDE__GET_SPATIAL_VARIABLE_GENES;
     } from "./src/spatialde/workflows/spatialde" params(params)
+    include {
+        SPATIALDE__ADD_SPATIAL_PATTERNS;
+    } from "./src/spatialde/processes/run_spatialde" params(params)
+    include {
+    	SC__FILE_CONVERTER as SC__FILE_CONVERTER_SPATIAL;
+    } from './src/utils/processes/utils' params(params)
+    include {
+        FILE_CONVERTER as FILE_CONVERTER_TO_SCOPE;
+    } from "./src/utils/workflows/fileConverter" params(params)
     include {
         PUBLISH as PUBLISH_SINGLE_SAMPLE_SCOPE;
         PUBLISH as PUBLISH_SINGLE_SAMPLE_SCANPY;
     } from "./src/utils/workflows/utils" params(params)
 
-    getDataChannel | SINGLE_SAMPLE
-    SPATIALDE__GET_SPATIAL_VARIABLE_GENES( SINGLE_SAMPLE.out.scanpyh5ad )    
+    getDataChannel | SC__FILE_CONVERTER_SPATIAL | SINGLE_SAMPLE
+    out = SPATIALDE__GET_SPATIAL_VARIABLE_GENES( SINGLE_SAMPLE.out.filtered_data )
+
+    if(params.tools?.spatialde?.run_aeh)
+    {
+	out = SPATIALDE__ADD_SPATIAL_PATTERNS(out, SINGLE_SAMPLE.out.final_processed_data )
+    }
+
+    FILE_CONVERTER_TO_SCOPE(
+			out,
+			'SINGLE_SAMPLE_SPATIALDE.final_output',
+			'mergeToSCopeLoomSimple',
+			null)
     
     if(params.utils?.publish) {
-        PUBLISH_SINGLE_SAMPLE_SCOPE(
-            SINGLE_SAMPLE.out.scopeloom,
-            "SINGLE_SAMPLE",
-            "loom",
-            null,
-            false
-        )
-        PUBLISH_SINGLE_SAMPLE_SCANPY(
-            SPATIALDE__GET_SPATIAL_VARIABLE_GENES.out,
+	PUBLISH_SINGLE_SAMPLE_SCANPY(
+            out,
             "SPATIALDE__SPATIAL_VARIABLE_GENES",
             "h5ad",
             null,
             false
         )
-    }  
 
+	PUBLISH_SINGLE_SAMPLE_SCOPE(
+	    FILE_CONVERTER_TO_SCOPE.out,
+            "SPATIALDE_scope",
+            "loom",
+            null,
+            false
+        )
+    }
 }
 
 workflow single_sample_spage {
