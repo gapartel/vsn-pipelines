@@ -1363,8 +1363,8 @@ workflow single_sample_spatialde {
     FILE_CONVERTER_TO_SCOPE(
 			scopeout,
 			'SINGLE_SAMPLE_SPATIALDE.final_output',
-			'mergeToSCopeLoomSimple',
-			null)
+			'mergeToSCopeLoom',			
+			SINGLE_SAMPLE.out.filtered_data)
     
     if(params.utils?.publish) {
 	PUBLISH_SINGLE_SAMPLE_SCANPY(
