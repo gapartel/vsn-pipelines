@@ -25,7 +25,12 @@ include {
 include {
     TANGRAM__PROJECT_EXPRESSION;
 } from '../processes/run_tangram.nf' params(params)
-
+include {
+    TANGRAM__GENERATE_DUAL_INPUT_REPORT; 
+} from '../processes/reports.nf' params(params)
+include {
+    SC__SCANPY__REPORT_TO_HTML as TANGRAM__REPORT_TO_HTML; 
+} from '../../scanpy/processes/reports.nf' params(params)
 
 
 //////////////////////////////////////////////////////
@@ -79,10 +84,24 @@ workflow PROJECT_CELLTYPES {
             false
         )
 
-	mapped2 = mapped
+	report = Channel.empty()
+	if(params.tools?.tangram?.report_ipynb)
+	{
+	    report = TANGRAM__GENERATE_DUAL_INPUT_REPORT(
+		file(workflow.projectDir + params.tools.tangram.report_ipynb),
+                mapping.join(mapped).map { 
+                    it -> tuple(*it[0..(it.size()-1)], null)
+                },                
+                'TANGRAM_report',
+                false
+            )
+	    TANGRAM__REPORT_TO_HTML(report.map {
+            	it -> tuple(it[0], it[1])
+            })
+	}
 	
     emit:
 	mapped
 	mapping
-	mapped2
+	report
 }

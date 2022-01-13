@@ -1558,7 +1558,7 @@ workflow multi_sample_spage {
     }
 }
 
-workflow single_sample_tangram_label_transfer {
+workflow single_sample_tangram {
     include {
         SINGLE_SAMPLE;
     } from "./src/scanpy/workflows/single_sample" params(params)
@@ -1573,6 +1573,8 @@ workflow single_sample_tangram_label_transfer {
     } from "./src/utils/workflows/fileConverter" params(params)
     include {
         PUBLISH as PUBLISH_SINGLE_SAMPLE_SCOPE;
+	PUBLISH as PUBLISH_SINGLE_SAMPLE_MAPPED;
+	PUBLISH as PUBLISH_SINGLE_SAMPLE_MAPPING;
     } from "./src/utils/workflows/utils" params(params)
     include {
     	SC__FILE_CONVERTER as SC__FILE_CONVERTER_SPATIAL;
@@ -1580,6 +1582,9 @@ workflow single_sample_tangram_label_transfer {
     include {
     	SC__FILE_CONVERTER as SC__FILE_CONVERTER_REF;
     } from './src/utils/processes/utils' params(params)
+    include {
+        SQUIDPY_ANALYSIS;
+    } from './src/squidpy/workflows/squidpy_analysis' params(params)
 
 
     data = getDataChannel | SC__FILE_CONVERTER_SPATIAL
@@ -1596,11 +1601,29 @@ workflow single_sample_tangram_label_transfer {
 			'mergeToSCopeLoomSimple',
 			null)
 
+    if (params.tools?.tangram?.squidpy_statistics==true){
+            SQUIDPY_ANALYSIS(TANGRAM__MAP_CELLTYPES.out.mapped)
+        }
+
     if(params.utils?.publish) {
         PUBLISH_SINGLE_SAMPLE_SCOPE(
 	    FILE_CONVERTER_TO_SCOPE.out,
             "TANGRAM_CELLTYPES_scope",
             "loom",
+            null,
+            false
+        )
+	PUBLISH_SINGLE_SAMPLE_MAPPING(
+	    TANGRAM__MAP_CELLTYPES.out.mapping,
+            "TANGRAM_MAPPING",
+            "h5ad",
+            null,
+            false
+        )
+	PUBLISH_SINGLE_SAMPLE_MAPPED(
+	    TANGRAM__MAP_CELLTYPES.out.mapped,
+            "TANGRAM_CELLTYPES",
+            "h5ad",
             null,
             false
         )

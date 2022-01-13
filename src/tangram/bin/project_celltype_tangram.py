@@ -10,6 +10,7 @@ import tangram as tg
 import scanpy as sc
 import pandas as pd
 import numpy as np
+import scipy
 
 
 ### options
@@ -85,6 +86,10 @@ except IOError:
 # get mappings
 tg.ut.project_cell_annotations(adata_map, adata_spatial, annotation=args.anno)
 df_annotations = adata_spatial.obsm["tangram_ct_pred"]
+
+# compute entropy per cell
+entropy = adata_spatial.obsm["tangram_ct_pred"].apply(lambda row : scipy.stats.entropy(row), axis=1)
+adata_spatial.obs['n_tangram_entropy'] = entropy / np.log(adata_spatial.obsm["tangram_ct_pred"].shape[1])
 
 # asssign best cell type
 idx = [np.array(df_annotations[df_annotations.index == cellid]).argmax() for cellid in df_annotations.index ]

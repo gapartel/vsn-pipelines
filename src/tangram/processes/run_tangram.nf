@@ -113,6 +113,7 @@ process TANGRAM__COMPUTE_MAPPING {
 		${processParams?.number_genes ? "-n " + processParams.number_genes  : ""} \
 		${processParams?.qvalue ? "-q " + processParams.qvalue  : ""} \
 		${processParams?.mapping_mode ? "--mode " + processParams.mapping_mode  : ""} \
+		${processParams?.gene_list ? "--list_genes " + processParams.gene_list  : ""} \
 		${f} \
       		${sampleId}.TANGRAM__MAPPING.${processParams.off}
       	"""
