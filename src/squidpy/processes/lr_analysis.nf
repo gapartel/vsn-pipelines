@@ -26,6 +26,7 @@ process LR_ANALYSIS {
             ${processParams?.lr_analysis.corr_method ? "--corr_method "+ processParams.lr_analysis.corr_method : "" } \
             ${processParams?.lr_analysis.corr_axis ? "--corr_axis "+ processParams.lr_analysis.corr_axis : "" } \
             ${processParams?.lr_analysis.corr_alpha ? "--corr_alpha "+ processParams.lr_analysis.corr_alpha : "" } \
+	    ${processParams?.lr_analysis.not_use_raw ? "--not_use_raw "+ processParams.lr_analysis.not_use_raw : "" } \
             ${params.global?.seed ? "--seed "+ params.global.seed : "" } \
             --n_jobs ${task.cpus} \
             ${sampleId}.LR_ANALYSIS.${processParams.lr_analysis.off} \

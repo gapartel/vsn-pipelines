@@ -44,7 +44,7 @@ parser.add_argument(
     type=str,
     action="store",
     dest="ripley_mod",
-    default='F',
+    default='L',
     help="Which Ripley’s statistic to compute."
 )
 

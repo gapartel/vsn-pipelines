@@ -95,6 +95,16 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--not_use_raw",
+    choices=['true', 'false'],
+    action="store",
+    dest="not_use_raw",
+    default='false',
+    help="Use .raw entry in anndata."
+)
+
+
+parser.add_argument(
     "output_spatial",
     type=argparse.FileType('w'),
     help='Output spatial h5ad file.'
@@ -105,6 +115,12 @@ args = parser.parse_args()
 # Define the arguments properly
 FILE_PATH_SPATIAL_H5AD = args.h5ad
 FILE_PATH_OUT_SPATIAL_BASENAME = os.path.splitext(args.output_spatial.name)[0]
+
+if args.not_use_raw == 'true':
+    use_raw_data = False
+else:
+    use_raw_data = True
+
 
 # I/O
 # Expects h5ad file
@@ -123,6 +139,7 @@ sq.gr.ligrec( adata,
               n_perms=args.n_perms,
               seed=args.seed,
               n_jobs=args.n_jobs,
+              use_raw=use_raw_data
 )
 
 # Write output
