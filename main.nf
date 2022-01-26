@@ -1315,36 +1315,74 @@ workflow filter_and_annotate_and_clean {
 workflow single_sample_spatialde {
 
     include {
-        single_sample as SINGLE_SAMPLE;
-    } from './workflows/single_sample' params(params)
+        SINGLE_SAMPLE;
+    } from "./src/scanpy/workflows/single_sample" params(params)
     include {
         GET_SPATIAL_VARIABLE_GENES as SPATIALDE__GET_SPATIAL_VARIABLE_GENES;
     } from "./src/spatialde/workflows/spatialde" params(params)
     include {
+        SPATIALDE__ADD_SPATIAL_PATTERNS;
+    } from "./src/spatialde/processes/run_spatialde" params(params)
+    include {
+    	SC__FILE_CONVERTER as SC__FILE_CONVERTER_SPATIAL;
+    } from './src/utils/processes/utils' params(params)
+    include {
+        FILE_CONVERTER as FILE_CONVERTER_TO_SCOPE;
+    } from "./src/utils/workflows/fileConverter" params(params)
+    include {
         PUBLISH as PUBLISH_SINGLE_SAMPLE_SCOPE;
         PUBLISH as PUBLISH_SINGLE_SAMPLE_SCANPY;
     } from "./src/utils/workflows/utils" params(params)
+    include {
+        GENERATE_REPORT as GENERATE_REPORT_VARIABLE_GENES;
+	GENERATE_REPORT as GENERATE_REPORT_AEH;
+    } from "./src/spatialde/workflows/create_report" params(params)
+    
 
-    getDataChannel | SINGLE_SAMPLE
-    SPATIALDE__GET_SPATIAL_VARIABLE_GENES( SINGLE_SAMPLE.out.scanpyh5ad )    
+    getDataChannel | SC__FILE_CONVERTER_SPATIAL | SINGLE_SAMPLE
+    out = SPATIALDE__GET_SPATIAL_VARIABLE_GENES( SINGLE_SAMPLE.out.filtered_data )
+
+    if(params.tools?.spatialde?.report_ipynb)
+    {
+	GENERATE_REPORT_VARIABLE_GENES("variable_genes", out, file(workflow.projectDir + params.tools.spatialde.report_ipynb) )
+    }
+
+    if(params.tools?.spatialde?.run_aeh)
+    {
+	if(params.tools?.spatialde?.report_aeh_ipynb)
+    	{
+		GENERATE_REPORT_AEH("aeh", out, file(workflow.projectDir + params.tools.spatialde.report_aeh_ipynb))
+    	}
+	
+	scopeout = SPATIALDE__ADD_SPATIAL_PATTERNS(out, SINGLE_SAMPLE.out.final_processed_data )	
+    } else {
+        scopeout = SINGLE_SAMPLE.out.final_processed_data
+    }
+    
+
+    FILE_CONVERTER_TO_SCOPE(
+			scopeout,
+			'SINGLE_SAMPLE_SPATIALDE.final_output',
+			'mergeToSCopeLoom',			
+			SINGLE_SAMPLE.out.filtered_data)
     
     if(params.utils?.publish) {
-        PUBLISH_SINGLE_SAMPLE_SCOPE(
-            SINGLE_SAMPLE.out.scopeloom,
-            "SINGLE_SAMPLE",
-            "loom",
-            null,
-            false
-        )
-        PUBLISH_SINGLE_SAMPLE_SCANPY(
-            SPATIALDE__GET_SPATIAL_VARIABLE_GENES.out,
+	PUBLISH_SINGLE_SAMPLE_SCANPY(
+            out,
             "SPATIALDE__SPATIAL_VARIABLE_GENES",
             "h5ad",
             null,
             false
         )
-    }  
 
+	PUBLISH_SINGLE_SAMPLE_SCOPE(
+	    FILE_CONVERTER_TO_SCOPE.out,
+            "SPATIALDE_scope",
+            "loom",
+            null,
+            false
+        )
+    }
 }
 
 workflow single_sample_spage {
@@ -1564,7 +1602,6 @@ workflow spage2vec_spage_label_transfer {
         SINGLE_SAMPLE.out.final_processed_data.map {
             it -> tuple(it[0], it[1])
         },
-    //    pseudocells_out,
         ref_data.collectFile()
     )
 
@@ -1618,7 +1655,7 @@ workflow spage2vec_spage_label_transfer {
     }
 }
 
-workflow single_sample_tangram_label_transfer {
+workflow single_sample_tangram {
     include {
         SINGLE_SAMPLE;
     } from "./src/scanpy/workflows/single_sample" params(params)
@@ -1633,6 +1670,8 @@ workflow single_sample_tangram_label_transfer {
     } from "./src/utils/workflows/fileConverter" params(params)
     include {
         PUBLISH as PUBLISH_SINGLE_SAMPLE_SCOPE;
+	PUBLISH as PUBLISH_SINGLE_SAMPLE_MAPPED;
+	PUBLISH as PUBLISH_SINGLE_SAMPLE_MAPPING;
     } from "./src/utils/workflows/utils" params(params)
     include {
     	SC__FILE_CONVERTER as SC__FILE_CONVERTER_SPATIAL;
@@ -1640,27 +1679,48 @@ workflow single_sample_tangram_label_transfer {
     include {
     	SC__FILE_CONVERTER as SC__FILE_CONVERTER_REF;
     } from './src/utils/processes/utils' params(params)
-    
+    include {
+        SQUIDPY_ANALYSIS;
+    } from './src/squidpy/workflows/squidpy_analysis' params(params)
 
 
     data = getDataChannel | SC__FILE_CONVERTER_SPATIAL
     ref_data = getReferenceDataChannel | SC__FILE_CONVERTER_REF | TANGRAM__PERPARE_REF
 
     SINGLE_SAMPLE (data)
-    
-    TANGRAM__MAP_CELLTYPES( SINGLE_SAMPLE.out.final_processed_data.combine(ref_data) )
+
+    input_spatial = SINGLE_SAMPLE.out.final_processed_data.combine(SINGLE_SAMPLE.out.filtered_data, by: 0)
+    TANGRAM__MAP_CELLTYPES( input_spatial.combine(ref_data) )
 
     FILE_CONVERTER_TO_SCOPE(
 			TANGRAM__MAP_CELLTYPES.out.mapped,
 			'SINGLE_SAMPLE_TANGRAM.final_output',
-			'mergeToSCopeLoom',
-			SINGLE_SAMPLE.out.filtered_data)
+			'mergeToSCopeLoomSimple',
+			null)
+
+    if (params.tools?.tangram?.squidpy_statistics==true){
+            SQUIDPY_ANALYSIS(TANGRAM__MAP_CELLTYPES.out.mapped)
+        }
 
     if(params.utils?.publish) {
         PUBLISH_SINGLE_SAMPLE_SCOPE(
 	    FILE_CONVERTER_TO_SCOPE.out,
             "TANGRAM_CELLTYPES_scope",
             "loom",
+            null,
+            false
+        )
+	PUBLISH_SINGLE_SAMPLE_MAPPING(
+	    TANGRAM__MAP_CELLTYPES.out.mapping,
+            "TANGRAM_MAPPING",
+            "h5ad",
+            null,
+            false
+        )
+	PUBLISH_SINGLE_SAMPLE_MAPPED(
+	    TANGRAM__MAP_CELLTYPES.out.mapped,
+            "TANGRAM_CELLTYPES",
+            "h5ad",
             null,
             false
         )

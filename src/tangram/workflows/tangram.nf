@@ -25,7 +25,12 @@ include {
 include {
     TANGRAM__PROJECT_EXPRESSION;
 } from '../processes/run_tangram.nf' params(params)
-
+include {
+    TANGRAM__GENERATE_DUAL_INPUT_REPORT; 
+} from '../processes/reports.nf' params(params)
+include {
+    SC__SCANPY__REPORT_TO_HTML as TANGRAM__REPORT_TO_HTML; 
+} from '../../scanpy/processes/reports.nf' params(params)
 
 
 //////////////////////////////////////////////////////
@@ -40,12 +45,16 @@ workflow PROJECT_CELLTYPES {
 
 	input.multiMap { it ->
 		       data: tuple(it[0], it[1])
-		       ref_data: tuple(it[3], it[4])
+		       filtered: tuple(it[0], it[3])
+		       ref_data: tuple(it[4], it[5])
 		       }
 		       .set{ combData }
 
+        data = combData.data
+	filtered = combData.filtered
 	ref = combData.ref_data
-	spatial = TANGRAM__PREPARE_SPATIAL( combData.data )
+	
+	spatial = TANGRAM__PREPARE_SPATIAL( data, filtered )
 	mapping = TANGRAM__COMPUTE_MAPPING(spatial, ref)
         mapped  = TANGRAM__PROJECT_CELLTYPES( spatial, ref, mapping)
 
@@ -74,8 +83,25 @@ workflow PROJECT_CELLTYPES {
             "tangram",
             false
         )
+
+	report = Channel.empty()
+	if(params.tools?.tangram?.report_ipynb)
+	{
+	    report = TANGRAM__GENERATE_DUAL_INPUT_REPORT(
+		file(workflow.projectDir + params.tools.tangram.report_ipynb),
+                mapping.join(mapped).map { 
+                    it -> tuple(*it[0..(it.size()-1)], null)
+                },                
+                'TANGRAM_report',
+                false
+            )
+	    TANGRAM__REPORT_TO_HTML(report.map {
+            	it -> tuple(it[0], it[1])
+            })
+	}
 	
     emit:
 	mapped
 	mapping
+	report
 }

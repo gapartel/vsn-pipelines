@@ -9,7 +9,10 @@ include {
 
 
 include {
-    SC__SPATIALDE__VARIABLE_GENES;
+    SPATIALDE__VARIABLE_GENES;
+} from '../processes/run_spatialde.nf' params(params)
+include {
+    SPATIALDE__SPATIAL_PATTERNS;
 } from '../processes/run_spatialde.nf' params(params)
 
 //////////////////////////////////////////////////////
@@ -20,9 +23,17 @@ workflow GET_SPATIAL_VARIABLE_GENES {
         data
 
     main:
-        SC__SPATIALDE__VARIABLE_GENES( data )
+	def spatialdeParams = params.tools.spatialde
+
+	out = SPATIALDE__VARIABLE_GENES( data )
+	
+	if(spatialdeParams?.run_aeh)
+	{
+		out = SPATIALDE__SPATIAL_PATTERNS(out)
+	}
+
         PUBLISH_H5AD_SPATIAL_VARIABLE_GENES(
-            SC__SPATIALDE__VARIABLE_GENES.out.map {
+            out.map {
                 // if stashedParams not there, just put null 3rd arg
                 it -> tuple(it[0], it[1], it.size() > 2 ? it[2]: null)
             },
@@ -33,5 +44,5 @@ workflow GET_SPATIAL_VARIABLE_GENES {
         )
 
     emit:
-        SC__SPATIALDE__VARIABLE_GENES.out
+        out
 }

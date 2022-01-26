@@ -63,6 +63,15 @@ parser.add_argument(
     help='Single cell reference h5ad file containing cell type annotation'
 )
 
+parser.add_argument(
+    '-l',
+    '--list_genes',
+    dest='list_genes',
+    default=None,
+    type=argparse.FileType('r'),
+    help='File containing marker genes, one gene per row. To use gene list, set --method-gene-selection=list (optional)'
+)
+
 
 parser.add_argument(
     '-n',
@@ -162,8 +171,19 @@ if args.method == 'marker_genes':
         
 elif args.method == 'all':
     gene_list = adata_spatial.var_names
+    
+elif args.method == 'list':
+    if args.list_genes is not None:
+        try:
+            with open(args.list_genes.name, 'r') as f:
+                lines = f.readlines()
+                gene_list = [ line.strip() for line in lines ]
+        except IOError:
+            raise Exception("VSN ERROR: Failed reading marker gene file {}.".format(args.list_genes))
+    else:
+        raise Exception("VSN ERROR: No marker gene file specified. '--list_genes' has to be specified if --method-gene-selection=list.")
 
-# get intersction of genes
+# get intersection of genes
 gene_list = list(set(gene_list) & set(adata_spatial.var_names) & set(adata_ref.var_names))
 
 if len(gene_list) < 1:

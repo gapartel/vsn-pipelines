@@ -10,6 +10,14 @@ import tangram as tg
 import scanpy as sc
 import pandas as pd
 import numpy as np
+import scipy
+
+### funtions
+
+# normalize values of vector to values between 0 and 1
+def normalize01(x):
+    newx = x - np.min(x)
+    return newx / np.max(newx)
 
 
 ### options
@@ -51,6 +59,15 @@ parser.add_argument(
     help="Annotation for selecting from marker genes (default: '%(default)s')"
 )
 
+parser.add_argument(
+    '-n',
+    '--normalize_map_scores',
+    dest='do_normalize',
+    choices=['true', 'false'],
+    default='false',
+    help="Normalize mapping scores to values between 0 and 1 (default: '%(default)s')"
+)
+
 
 args = parser.parse_args()
 
@@ -84,7 +101,17 @@ except IOError:
 
 # get mappings
 tg.ut.project_cell_annotations(adata_map, adata_spatial, annotation=args.anno)
+
+# normalize projection scores if desired
+if args.do_normalize == 'true':
+    adata_spatial.obsm['tangram_raw_ct_pred'] = adata_spatial.obsm["tangram_ct_pred"].copy()
+    adata_spatial.obsm['tangram_ct_pred'] = adata_spatial.obsm['tangram_ct_pred'].apply(normalize01)
+    
 df_annotations = adata_spatial.obsm["tangram_ct_pred"]
+
+# compute entropy per cell
+entropy = adata_spatial.obsm["tangram_ct_pred"].apply(lambda row : scipy.stats.entropy(row), axis=1)
+adata_spatial.obs['n_tangram_entropy'] = entropy / np.log(adata_spatial.obsm["tangram_ct_pred"].shape[1])
 
 # asssign best cell type
 idx = [np.array(df_annotations[df_annotations.index == cellid]).argmax() for cellid in df_annotations.index ]
@@ -96,6 +123,7 @@ best_celltype_column_name = "tangram_best_" + args.anno
 prefix = "n_tangram_"
 df_annotations = df_annotations.add_prefix(prefix)
 assert adata_spatial.obs.index.equals(df_annotations.index)
+
 
 # add to obs
 df_annotations.index.name = None

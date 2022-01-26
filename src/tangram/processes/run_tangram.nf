@@ -30,12 +30,10 @@ process TANGRAM__MAP_CELLTYPES {
 		${processParams?.qvalue ? "-q " + processParams.qvalue  : ""} \
 		${processParams?.mapping_mode ? "--mode " + processParams.mapping_mode  : ""} \
 		${processParams?.exp_scrnaseq ? "--exp-ref"  : ""} \
-		${processParams?.exp_spatial ? "--exp-spatial"  : ""} \
 		${f} \
       		${sampleId}.TANGRAM__CELLTYPES.${processParams.off}
       	"""
 }
-
 
 
 process TANGRAM__PREPARE_SCRNA {
@@ -57,8 +55,8 @@ process TANGRAM__PREPARE_SCRNA {
      	${binDir}/prepare_scRNA_tangram.py \
 		${processParams?.annotation ? "-a " + processParams.annotation  : ""} \
 		${processParams?.gene_selection_method ? "-m " + processParams.gene_selection_method  : ""} \
-		${processParams?.rank_gene_method ? "---rank-gene-method " + processParams.rank_gene_method  : ""} \
-		${processParams?.exp_scrnaseq ? "--exp-ref"  : ""} \
+		${processParams?.rank_gene_method ? "--rank-gene-method " + processParams.rank_gene_method  : ""} \
+		${processParams?.normalize ? "--normalize " + processParams.normalize  : ""} \
 		${f} \
       		${sampleId}.TANGRAM__SCRNA.${processParams.off}
       	"""
@@ -66,13 +64,14 @@ process TANGRAM__PREPARE_SCRNA {
 
 
 process TANGRAM__PREPARE_SPATIAL {
-    
+
     container params.tools.tangram.container
     publishDir "${params.global.outdir}/data/intermediate", mode: 'symlink', overwrite: true
     label 'compute_resources__cpu'
 
     input:
         tuple val(sampleId), path(f)
+	tuple val(sampleId), path(filtered)
 
     output:
         tuple val(sampleId), path("${sampleId}.TANGRAM__SPATIAL.${processParams.off}")
@@ -82,11 +81,12 @@ process TANGRAM__PREPARE_SPATIAL {
       	    processParams = sampleParams.local
       	"""
      	${binDir}/prepare_spatial_tangram.py \
-		${processParams?.exp_spatial ? "--exp-spatial"  : ""} \
 		${f} \
+		${filtered} \
       		${sampleId}.TANGRAM__SPATIAL.${processParams.off}
       	"""
 }
+
 
 process TANGRAM__COMPUTE_MAPPING {
     
@@ -113,6 +113,7 @@ process TANGRAM__COMPUTE_MAPPING {
 		${processParams?.number_genes ? "-n " + processParams.number_genes  : ""} \
 		${processParams?.qvalue ? "-q " + processParams.qvalue  : ""} \
 		${processParams?.mapping_mode ? "--mode " + processParams.mapping_mode  : ""} \
+		${processParams?.gene_list ? "--list_genes " + processParams.gene_list  : ""} \
 		${f} \
       		${sampleId}.TANGRAM__MAPPING.${processParams.off}
       	"""
@@ -141,6 +142,7 @@ process TANGRAM__PROJECT_CELLTYPES {
 		-r  ${ref} \
 		--mapping ${mapping} \
 		${processParams?.annotation ? "-a " + processParams.annotation  : ""} \
+		${processParams?.normalize_celltype_scores ? "--normalize_map_scores " + processParams.normalize_celltype_scores  : ""} \
 		${f} \
       		${sampleId}.TANGRAM__CELLTYPES.${processParams.off}
       	"""

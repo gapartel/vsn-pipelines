@@ -10,33 +10,32 @@ import pandas as pd
 import numpy as np
 
 
-### options
+# options
 parser = argparse.ArgumentParser(description='')
 
 parser.add_argument(
     "input",
     type=argparse.FileType('r'),
-    help='Input spatial h5ad file.'
+    help='Input h5ad file.'
 )
 
 parser.add_argument(
-    "filtered",
+    "final",
     type=argparse.FileType('r'),
-    help='Input raw filtered spatial h5ad file.'
+    help='Proccesed h5ad file patterns should be added to.'
 )
 
 parser.add_argument(
     "output",
     type=argparse.FileType('w'),
-    help='Output spatial h5ad file.'
+    help='Output h5ad file.'
 )
-
 
 args = parser.parse_args()
 
 # Define the arguments properly
 FILE_PATH_IN = args.input
-FILE_PATH_FILTERED = args.filtered
+FILE_PATH_FINAL = args.final
 FILE_PATH_OUT_BASENAME = os.path.splitext(args.output.name)[0]
 
 ### main
@@ -50,19 +49,15 @@ except IOError:
 
 # Expects h5ad file
 try:
-    adata_raw = sc.read_h5ad(filename=FILE_PATH_FILTERED.name)
+    adata_final = sc.read_h5ad(filename=FILE_PATH_FINAL.name)
 except IOError:
     raise Exception("VSN ERROR: Can only handle .h5ad files.")
 
 
-# tangram specific modification
-# add coordinates as obs.x and obs.y
-adata_spatial = adata.copy()
-adata_spatial.obs['x'] = np.asarray(adata.obsm['spatial'][:,0])
-adata_spatial.obs['y'] = np.asarray(adata.obsm['spatial'][:,1])
-
-# add raw spatial data
-adata_spatial.X = adata_raw[:, adata_spatial.var.index].X.copy()
+# add patterns as obs variables to used as SCope metric
+for pattern in adata.uns['spatialDE_AEH_patterns'].keys():
+    patname = 'n_spatialDE_AEH_pattern' + pattern
+    adata_final.obs[patname] = [ np.exp(v) for v in adata.uns['spatialDE_AEH_patterns'][pattern] ]
 
 # write output
-adata_spatial.write_h5ad("{}.h5ad".format(FILE_PATH_OUT_BASENAME))
+adata_final.write_h5ad("{}.h5ad".format(FILE_PATH_OUT_BASENAME))
