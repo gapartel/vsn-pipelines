@@ -1414,23 +1414,23 @@ workflow single_sample_spage {
             'mergeToSCopeLoom',
             SINGLE_SAMPLE.out.filtered_data
         )
-    }
 
-    if(params.utils?.publish) {
-        PUBLISH_SINGLE_SAMPLE_SCOPE(
-            out_loom,
-            "SPAGE__LABEL_TRANSFER",
-            "loom",
-            null,
-            false
-        )
-        PUBLISH_SINGLE_SAMPLE_SCANPY(
-            out_h5ad,
-            "SPAGE__LABEL_TRANSFER",
-            "h5ad",
-            null,
-            false
-        )
+        if(params.utils?.publish) {
+            PUBLISH_SINGLE_SAMPLE_SCOPE(
+                out_loom,
+                "SPAGE__LABEL_TRANSFER",
+                "loom",
+                null,
+                false
+            )
+            PUBLISH_SINGLE_SAMPLE_SCANPY(
+                out_h5ad,
+                "SPAGE__LABEL_TRANSFER",
+                "h5ad",
+                null,
+                false
+            )
+        }
     }    
 }
 
@@ -1513,6 +1513,104 @@ workflow multi_sample_spage {
         PUBLISH_MULTI_SAMPLE_SCANPY(
             out_h5ad,
             "SPAGE",
+            "h5ad",
+            null,
+            false
+        )
+    }
+}
+
+workflow spage2vec_spage_label_transfer {
+    include {
+        SINGLE_SAMPLE;
+    } from './src/scanpy/workflows/single_sample' params(params)
+    include {
+        RUN_SPAGE2VEC;
+    } from "./src/spage2vec/workflows/spage2vec" params(params)
+    include {
+        PSEUDO_CELLS;
+    } from './src/spage2vec/processes/pseudo_cells' params(params)
+    include {
+        SPAGE__DATA_INTEGRATION;
+        SPAGE__LABEL_TRANSFER;
+        SPAGE__GENE_IMPUTATION;
+    } from "./src/spage/workflows/spage" params(params)
+    include {
+        PUBLISH as PUBLISH_SPAGE2VEC_SPAGE_SCOPE;
+        PUBLISH as PUBLISH_SPAGE2VEC_SPAGE_SCANPY;
+    } from "./src/utils/workflows/utils" params(params)
+    include {
+        FILE_CONVERTER as FILE_CONVERTER_TO_SCOPE;
+    } from "./src/utils/workflows/fileConverter" params(params)
+    include {
+        SC__FILE_CONVERTER as SC__FILE_CONVERTER_REF;
+    } from './src/utils/processes/utils' params(params)
+    include {
+        SQUIDPY_ANALYSIS;
+    } from './src/squidpy/workflows/squidpy_analysis' params(params)
+
+    spage2vec_out = getDataChannel | RUN_SPAGE2VEC
+    ref_data = getReferenceDataChannel | SC__FILE_CONVERTER_REF
+
+    pseudocells_out = PSEUDO_CELLS(
+        spage2vec_out.map {
+            it -> tuple(it[0], it[1])
+        }
+    )
+
+    SINGLE_SAMPLE( pseudocells_out )
+
+    integration_res = SPAGE__DATA_INTEGRATION(
+        SINGLE_SAMPLE.out.final_processed_data.map {
+            it -> tuple(it[0], it[1])
+        },
+    //    pseudocells_out,
+        ref_data.collectFile()
+    )
+
+    if (params.tools?.spage?.label_transfer==true){
+        SPAGE__LABEL_TRANSFER(
+            integration_res.data,
+            integration_res.knn
+        )
+        if (params.tools?.spage?.spatial_statistics==true){
+            SQUIDPY_ANALYSIS(SPAGE__LABEL_TRANSFER.out)
+        }
+        out_h5ad = SPAGE__LABEL_TRANSFER.out
+        data = SPAGE__LABEL_TRANSFER.out.combine(ref_data.collectFile())
+
+    } else {
+        data = integration_res.data
+    }
+
+    if (params.tools?.spage?.gene_imputation==true){
+        SPAGE__GENE_IMPUTATION(
+            data,
+            integration_res.knn
+        )
+        out_h5ad = SPAGE__GENE_IMPUTATION.out
+    }
+
+    if (params.tools?.spage?.label_transfer==true || params.tools?.spage?.gene_imputation==true) {
+        out_loom = FILE_CONVERTER_TO_SCOPE (
+            out_h5ad,
+            'SPAGE2VEC__SPAGE.final_output',
+            'mergeToSCopeLoom',
+            SINGLE_SAMPLE.out.filtered_data           
+        )
+    }
+
+    if(params.utils?.publish) {
+        PUBLISH_SPAGE2VEC_SPAGE_SCOPE(
+            out_loom,
+            "SPAGE2VEC_SPAGE",
+            "loom",
+            null,
+            false
+        )
+        PUBLISH_SPAGE2VEC_SPAGE_SCANPY(
+            out_h5ad,
+            "SPAGE2VEC_SPAGE",
             "h5ad",
             null,
             false

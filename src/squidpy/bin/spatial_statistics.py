@@ -64,7 +64,7 @@ parser.add_argument(
     action="store",
     dest="n_neigh",
     default=2,
-    help="Which metric to use for computing distances for Ripley's statistics."
+    help="Number of neighbors to consider for the KNN graph."
 )
 
 parser.add_argument(
