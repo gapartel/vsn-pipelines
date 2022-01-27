@@ -1726,3 +1726,14 @@ workflow single_sample_tangram {
         )
     }
 }
+
+workflow IST_processing {
+    // Includes
+    include {
+            iss as ISS_PROCESSING_PIPELINE
+    } from "./src/IST_processing/workflows/iss.nf"
+    include {
+        merfish as MERFISH_PROCESSING_PIPELINE
+    } from ".src/IST_processing/workflows/merfish.nf"
+
+}
