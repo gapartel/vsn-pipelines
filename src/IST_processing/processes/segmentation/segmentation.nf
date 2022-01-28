@@ -3,7 +3,7 @@ nextflow.enable.dsl=2
 import java.nio.file.Paths
 
 moduleName="segmentation"
-binDir = Paths.get(workflow.projectDir.toString(), "src/$moduleName/bin/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
 
 process stardist_segmentation {
     publishDir "$params.outDir/segmented", mode: 'symlink'
@@ -17,7 +17,7 @@ process stardist_segmentation {
 
     script:
     """
-    python $binDir/stardistSegment.py $image $baseDir/src/$moduleName/stardist_model/
+    python $binDir/stardistSegment.py $image $binDir/stardist_model/
     """
     
 }

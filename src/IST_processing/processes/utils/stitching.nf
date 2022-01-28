@@ -4,7 +4,7 @@ nextflow.enable.dsl=2
 import java.nio.file.Paths
 
 moduleName="utils"
-binDir = Paths.get(workflow.projectDir.toString(), "src/$moduleName/bin/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
 
 // stitchDir is supposed to be overwritten by the top-level workflow that includes it
 params.stitchDir = "stitched"

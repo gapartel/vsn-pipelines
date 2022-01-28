@@ -11,7 +11,7 @@ include {
 
 include {
     plotDecodingPotential; plotTileDecodingPotential
-} from "$baseDir/src/plotting/processes/plotting.nf"
+} from "../../processes/plotting/plotting.nf"
 
 workflow iss_decoding_statistics{
         take:
@@ -28,7 +28,7 @@ workflow iss_decoding_statistics{
             // Decoding intensity based on thresholds
             plot_decoding_intensity_QC(decoded_genes)
             
-            create_spot_based_decoding_html("$baseDir/assets/html_templates/decoding_report_template.html",get_spot_based_decoding_stats.out, plotDecodingPotential.out, plot_decoding_intensity_QC.out)
+            create_spot_based_decoding_html("$projectDir/src/IST-processing/assets/html_templates/decoding_report_template.html",get_spot_based_decoding_stats.out, plotDecodingPotential.out, plot_decoding_intensity_QC.out)
 
 }
 
@@ -42,6 +42,6 @@ workflow merfish_decoding_statistics{
             // General statistics
             get_pixel_based_decoding_stats(decoded_genes, codebook)
 
-            create_pixel_based_decoding_html("$baseDir/assets/html_templates/merfish_decoding_report_template.html",get_pixel_based_decoding_stats.out)
+            create_pixel_based_decoding_html("$projectDir/src/IST-processing/assets/html_templates/merfish_decoding_report_template.html",get_pixel_based_decoding_stats.out)
 
 }

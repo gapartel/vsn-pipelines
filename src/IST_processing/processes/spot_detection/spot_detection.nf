@@ -2,7 +2,7 @@ nextflow.enable.dsl=2
 import java.nio.file.Paths
 
 moduleName="spot_detection"
-binDir = Paths.get(workflow.projectDir.toString(), "src/$moduleName/bin/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
 
 process spot_detection_reference {
     publishDir "$params.outDir/blobs", mode: 'symlink'

@@ -1,11 +1,9 @@
 nextflow.enable.dsl=2
 
-/* import java.nio.file.Paths */
+import java.nio.file.Paths
 
 /* moduleName="quality_control" */
-/* binDir = Paths.get(workflow.projectDir.toString(), "src/$moduleName/bin/") */
-binDir = "/home/nacho/Documents/Code/communISS/src/quality_control/bin"
-workDir = "/media/tool/gabriele_data/1442_OB/maxIP-seperate-channels/results_correct_codebook_whiteDisk3_minSigma2_maxSigma20_noNorm_stardistSegmentation_voronoiAssigned_spotDetectionQC_without_global_registration/quality_control_pixel_distance_1/work"
+binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
 
 
 process calculate_precision {

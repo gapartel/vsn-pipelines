@@ -4,7 +4,7 @@ import java.nio.file.Paths
 
 moduleName="file_conversion"
 
-binDir = Paths.get(workflow.projectDir.toString(), "src/$moduleName/bin/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
 
 process transform_tile_coordinate_system {
     publishDir "$params.outDir/final", mode: 'copy'

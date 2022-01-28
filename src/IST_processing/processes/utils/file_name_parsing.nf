@@ -4,7 +4,7 @@ nextflow.enable.dsl=2
 import java.nio.file.Paths
 
 moduleName="utils"
-binDir = Paths.get(workflow.projectDir.toString(), "src/$moduleName/bin/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
 
 process add_parent_dir_to_file_name {
         echo = true

@@ -8,7 +8,7 @@ include{
 
 include{
     stitch_ref_tiles ; stitch_round_tiles ; stitch_image_tiles
-} from "$baseDir/src/utils/processes/stitching.nf"
+} from "../../processes/utils/stitching.nf"
 
 
 

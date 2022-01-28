@@ -4,7 +4,7 @@ import java.nio.file.Paths
 
 moduleName="registration"
 
-binDir = Paths.get(workflow.projectDir.toString(), "src/$moduleName/bin/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
 
 
 process calculate_transformation_wrt_maxIP {

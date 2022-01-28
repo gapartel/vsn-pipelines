@@ -3,7 +3,7 @@ nextflow.enable.dsl=2
 import java.nio.file.Paths
 
 moduleName="quality_control"
-binDir = Paths.get(workflow.projectDir.toString(), "src/$moduleName/bin/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
 
 process plot_intensity_histogram {
     publishDir "$params.outDir/quality_control", mode: 'symlink'

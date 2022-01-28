@@ -6,53 +6,53 @@ nextflow.enable.dsl=2
 
 include {
     iss_round_adder;
-} from '../src/utils/workflows/image_name_parser.nf'
+} from './utils/image_name_parser.nf'
 include {
     CLIP_AND_RESCALE_TILES; CLIP_AND_RESCALE_GLOBAL
-} from "../src/normalization/workflows/normalization_workflow.nf"
+} from "./normalization/normalization_workflow.nf"
 include {
     standard_iss_tiling as tiling;
-} from "../src/tiling/workflows/tiling_workflows.nf"
+} from "./tiling/tiling_workflows.nf"
 include {
     create_reference_image
-} from "../src/utils/workflows/projections.nf"
+} from "./utils/projections.nf"
 include {
     white_tophat_filter
-} from "../src/filtering/workflows/filter_workflow.nf"
+} from "./filtering/filter_workflow.nf"
 
 include {
     local_registration_of_tiles as registering 
-} from "../src/registration/workflows/local_registration.nf"
+} from "./registration/local_registration.nf"
 
 include {
     spot_detection_iss;
-} from "../src/spot_detection/workflows/spot_detection.nf"
+} from "./spot_detection/spot_detection.nf"
 
 include {
     decode_sequential_max_intensity as decoding
-} from "../src/decoding/processes/decoding.nf"
+} from "../processes/decoding/decoding.nf"
 
 include {
     iss_decoding_statistics
-} from "../src/analytics/workflows/decoded_statistics.nf"
+} from "./analytics/decoded_statistics.nf"
 include {
     assignment_statistics_workflow
-} from "../src/analytics/workflows/assigned_statistics.nf"
+} from "./analytics/assigned_statistics.nf"
 
 include {
     plot_decoded_genes 
-} from "../src/plotting/workflows/decoded_genes_workflow.nf" 
+} from "./plotting/decoded_genes_workflow.nf" 
 include {
    threshold_watershed_segmentation as segmentation //stardist_segmentation_workflow as segmentation //
-} from "../src/segmentation/workflows/segmentation_workflow.nf"
+} from "./segmentation/segmentation_workflow.nf"
 
 include {
     transform_tile_coordinate_system
-} from "../src/file_conversion/processes/coordinate_parsing.nf"
+} from "../processes/file_conversion/coordinate_parsing.nf"
 
 include {
     clean_work_dir
-} from "../src/utils/processes/clean_up.nf"
+} from "../processes/utils/clean_up.nf"
 
 
 
