@@ -1727,16 +1727,17 @@ workflow single_sample_tangram {
     }
 }
 
-workflow IST_processing {
+workflow iss {
     // Includes
     include {
             iss as ISS_PROCESSING_PIPELINE
     } from "./src/IST_processing/workflows/iss.nf"
+    ISS_PROCESSING_PIPELINE()
+
+}
+workflow merfish {
     include {
         merfish as MERFISH_PROCESSING_PIPELINE
     } from ".src/IST_processing/workflows/merfish.nf"
-
-    if (params.tools?.tangram?.squidpy_statistics==true){
-            SQUIDPY_ANALYSIS(TANGRAM__MAP_CELLTYPES.out.mapped)
-        }
+    MERFISH_PROCESSING_PIPELINE()
 }
