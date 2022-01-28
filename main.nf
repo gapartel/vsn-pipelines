@@ -1736,4 +1736,7 @@ workflow IST_processing {
         merfish as MERFISH_PROCESSING_PIPELINE
     } from ".src/IST_processing/workflows/merfish.nf"
 
+    if (params.tools?.tangram?.squidpy_statistics==true){
+            SQUIDPY_ANALYSIS(TANGRAM__MAP_CELLTYPES.out.mapped)
+        }
 }
