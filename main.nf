@@ -1731,13 +1731,13 @@ workflow iss {
     // Includes
     include {
             iss as ISS_PROCESSING_PIPELINE
-    } from "./src/IST_processing/workflows/iss.nf"
+    } from "./src/IST_processing/main.nf"
     ISS_PROCESSING_PIPELINE()
 
 }
 workflow merfish {
     include {
         merfish as MERFISH_PROCESSING_PIPELINE
-    } from ".src/IST_processing/workflows/merfish.nf"
+    } from "./src/IST_processing/main.nf"
     MERFISH_PROCESSING_PIPELINE()
 }
