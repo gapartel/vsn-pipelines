@@ -3,7 +3,8 @@ nextflow.enable.dsl=2
 
 include {
     maxIP_per_round
-} from "../workflows/utils/projections.nf"
+} from "../../workflows/utils/projections.nf"
+
 
 include {
     calculate_transformation_wrt_maxIP ; apply_transformation ;register_with_maxIP

@@ -2,11 +2,11 @@ nextflow.enable.dsl=2
 
 include {
     add_parent_dir_to_file_name 
-} from "./workflows/utils/file_name_parsing.nf"
+} from "./processes/utils/file_name_parsing.nf"
 
 include{
     SPLIT_CZI_ROUNDS_INTO_CHANNEL_TIFS
-} from "./workflows/file_conversion/czi.nf"
+} from "./workflows/file_conversion/czi_conversion.nf"
 
 include {
     intensity_diagnosing
@@ -19,6 +19,7 @@ include {
 include {
     merfish as merfish_pipeline
 } from "./workflows/merfish.nf"
+
 
 workflow rename_files{
 
@@ -41,3 +42,7 @@ workflow merfish {
 
     merfish_pipeline()
 }
+workflow test_entry(){
+    print("tested")
+}
+

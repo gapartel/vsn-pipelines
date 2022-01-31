@@ -8,7 +8,7 @@ include{
 
 include{
     stitch_ref_tiles ; stitch_round_tiles
-} from "../../processes/stitching/stitching.nf"
+} from "../../processes/utils/stitching.nf"
 
 
 workflow CLIP_AND_RESCALE_GLOBAL {

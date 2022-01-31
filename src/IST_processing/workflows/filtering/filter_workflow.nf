@@ -4,7 +4,7 @@ params.stitchDir = "filtered"
 
 include{
     filter_ref; filter_round; filter_gaussian_high_pass ; filter_gaussian_low_pass; deconvolve_PSF
-} from "../..processes/filtering/filtering.nf"
+} from "../../processes/filtering/filtering.nf"
 
 include{
     stitch_ref_tiles ; stitch_round_tiles ; stitch_image_tiles

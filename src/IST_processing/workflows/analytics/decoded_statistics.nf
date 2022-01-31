@@ -7,7 +7,7 @@ include{
 
 include {
        get_pixel_based_decoding_stats; create_pixel_based_decoding_html
-} from "../processes/analytics.nf"
+} from "../../processes/analytics/analytics.nf"
 
 include {
     plotDecodingPotential; plotTileDecodingPotential

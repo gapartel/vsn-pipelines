@@ -6,45 +6,45 @@ nextflow.enable.dsl=2
 
 include {
     rename_file
-} from "../src/utils/processes/file_name_parsing.nf"
+} from "../processes/utils/file_name_parsing.nf"
 include {
     convert_to_uin16
-} from "../src/file_conversion/processes/image_type_conversion.nf"
+} from "../processes/file_conversion/image_type_conversion.nf"
 
 include {
     standard_merfish_tiling as tiling
-} from "../src/tiling/workflows/tiling_workflows.nf"
+} from "./tiling/tiling_workflows.nf"
 include {
     merfish_global_registration
-} from "../src/registration/workflows/merfish_registration.nf"
+} from "./registration/merfish_registration.nf"
 include {
     gaussian_low_pass_filter_workflow; gaussian_high_pass_filter_workflow; deconvolve_PSF_workflow; white_tophat_filter_merfish
-} from "../src/filtering/workflows/filter_workflow.nf"
+} from "./filtering/filter_workflow.nf"
 include {
     local_registration_of_tiles
-} from "../src/registration/workflows/local_registration.nf"
+} from "./registration/local_registration.nf"
 include {
     merfish_threshold_watershed_segmentation as segmentation
-} from "../src/segmentation/workflows/segmentation_workflow.nf"
+} from "./segmentation/segmentation_workflow.nf"
 
 include {
      nn_pixel_based_decoding as pixel_based_decoding  
-} from "../src/decoding/processes/decoding.nf"
+} from "../processes/decoding/decoding.nf"
 
 include {
     transform_tile_coordinate_system
-} from "../src/file_conversion/processes/coordinate_parsing.nf"
+} from "../processes/file_conversion/coordinate_parsing.nf"
 
 include {
     plot_decoded_spots
-} from "../src/plotting/processes/plotting.nf"
+} from "../processes/plotting/plotting.nf"
 
 include{
     assignment_statistics_workflow
-} from "../src/analytics/workflows/assigned_statistics.nf"
+} from "./analytics/assigned_statistics.nf"
 include {
         merfish_decoding_statistics 
-} from "../src/analytics/workflows/decoded_statistics.nf"
+} from "./analytics/decoded_statistics.nf"
 
 workflow merfish {
 

@@ -1,4 +1,4 @@
-:nextflow.enable.dsl=2
+nextflow.enable.dsl=2
 
 include{
         get_assignment_stats ;  create_assignment_html 
