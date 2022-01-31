@@ -3,10 +3,10 @@ nextflow.enable.dsl=2
 import java.nio.file.Paths
 
 moduleName="quality_control"
-binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/IST_processing/bin/$moduleName/")
 
 process plot_intensity_histogram {
-    publishDir "$params.outDir/quality_control", mode: 'symlink'
+    publishDir "$params.global.outdir/quality_control", mode: 'symlink'
     input:
     path image
 
@@ -19,7 +19,7 @@ process plot_intensity_histogram {
     """
 }
 process plot_combined_histogram {
-    publishDir "$params.outDir/quality_control", mode: 'symlink'
+    publishDir "$params.global.outdir/quality_control", mode: 'symlink'
     input:
     tuple val(prefix), path(images)
 
@@ -44,7 +44,7 @@ process get_intensity_analytics {
     """
 }
 process collect_intensity_analytics {
-    publishDir "$params.outDir/quality_control", mode: "symlink"
+    publishDir "$params.global.outdir/quality_control", mode: "symlink"
     
     input:
     path dict_jsons
@@ -58,7 +58,7 @@ process collect_intensity_analytics {
     """
 }
 process create_html_report {
-    publishDir "$params.outDir/quality_control", mode: "symlink"
+    publishDir "$params.global.outdir/quality_control", mode: "symlink"
 
     input: 
     val round_nr

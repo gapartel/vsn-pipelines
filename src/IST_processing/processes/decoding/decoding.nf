@@ -3,11 +3,11 @@ nextflow.enable.dsl=2
 import java.nio.file.Paths
 
 moduleName = "decoding"
-binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/IST_processing/bin/$moduleName/")
 
 
 process decode_sequential_max_intensity {
-    publishDir "$params.outDir/decoded", mode: 'symlink'
+    publishDir "$params.global.outdir/decoded", mode: 'symlink'
 
     input:
     path max_intensities
@@ -21,7 +21,7 @@ process decode_sequential_max_intensity {
 
 }
 process pixel_based_decoding {
-    publishDir "$params.outDir/decoded", mode: 'symlink'
+    publishDir "$params.global.outdir/decoded", mode: 'symlink'
 
     input:
     val x_dim
@@ -38,7 +38,7 @@ process pixel_based_decoding {
 }
 
 process nn_pixel_based_decoding {
-    publishDir "$params.outDir/decoded", mode: 'symlink'
+    publishDir "$params.global.outdir/decoded", mode: 'symlink'
 
     input:
     val x_dim

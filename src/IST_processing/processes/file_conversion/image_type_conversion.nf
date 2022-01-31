@@ -4,10 +4,10 @@ import java.nio.file.Paths
 
 moduleName="file_conversion"
 
-binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/IST_processing/bin/$moduleName/")
 
 process convert_to_uin16 {
-    publishDir "$params.outDir/converted", mode: 'copy'
+    publishDir "$params.global.outdir/converted", mode: 'copy'
 
     input:
     path image

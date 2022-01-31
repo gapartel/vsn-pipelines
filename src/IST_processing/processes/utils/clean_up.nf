@@ -3,13 +3,13 @@ nextflow.enable.dsl=2
 import java.nio.file.Paths
 
 moduleName="utils"
-binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/IST_processing/bin/$moduleName/")
 
 
 process clean_work_dir {
 
     script:
     """
-    bash $binDir/clean_work.sh $params.outDir $workDir
+    bash $binDir/clean_work.sh $params.global.outdir $workDir
     """
 }

@@ -3,13 +3,13 @@ nextflow.enable.dsl=2
 import java.nio.file.Paths
 
 moduleName= "analytics"
-binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/IST_processing/bin/$moduleName/")
 
 /**
     Assignment analytics
 **/
 process get_assignment_stats {
-    publishDir "$params.outDir/analytics/assigned/assets", mode: 'copy'
+    publishDir "$params.global.outdir/analytics/assigned/assets", mode: 'copy'
 
     input:
     path assigned_genes
@@ -26,7 +26,7 @@ process get_assignment_stats {
 }
 
 process create_assignment_html {
-    publishDir "$params.outDir/analytics/assigned/", mode: 'copy'
+    publishDir "$params.global.outdir/analytics/assigned/", mode: 'copy'
     input:
     path template
     path general_assignment_information
@@ -46,7 +46,7 @@ process create_assignment_html {
     Spot-based techniques analytics
 **/
 process get_spot_based_decoding_stats {
-    publishDir "$params.outDir/analytics/decoded_stats/assets/", mode: 'copy'
+    publishDir "$params.global.outdir/analytics/decoded_stats/assets/", mode: 'copy'
 
     input:
     path decoded_genes
@@ -70,7 +70,7 @@ process get_spot_based_decoding_stats {
 }
 
 process plot_decoding_intensity_QC {
-    publishDir "$params.outDir/analytics/decoded_stats/assets/", mode: 'copy'
+    publishDir "$params.global.outdir/analytics/decoded_stats/assets/", mode: 'copy'
 
     input:
     path decoded_genes
@@ -85,7 +85,7 @@ process plot_decoding_intensity_QC {
 }
 
 process create_spot_based_decoding_html {
-    publishDir "$params.outDir/analytics/decoded_stats/", mode: 'copy'
+    publishDir "$params.global.outdir/analytics/decoded_stats/", mode: 'copy'
     input:
     path template
     path general_stats
@@ -113,7 +113,7 @@ process create_spot_based_decoding_html {
     pixel-based techniques analytics
 **/
 process get_pixel_based_decoding_stats {
-    publishDir "$params.outDir/analytics/decoded_stats/assets/", mode: 'copy'
+    publishDir "$params.global.outdir/analytics/decoded_stats/assets/", mode: 'copy'
 
     input:
     path decoded_genes
@@ -132,7 +132,7 @@ process get_pixel_based_decoding_stats {
 }
 
 process create_pixel_based_decoding_html {
-    publishDir "$params.outDir/analytics/decoded_stats/", mode: 'copy'
+    publishDir "$params.global.outdir/analytics/decoded_stats/", mode: 'copy'
     input:
     path template
     path general_stats

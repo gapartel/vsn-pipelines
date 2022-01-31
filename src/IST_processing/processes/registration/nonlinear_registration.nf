@@ -4,12 +4,12 @@ import java.nio.file.Paths
 
 moduleName="registration"
 
-binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/IST_processing/bin/$moduleName/")
 
 
 process calculate_transformation_wrt_maxIP {
 
-    publishDir "$params.outDir/tranformations/", mode: 'symlink'
+    publishDir "$params.global.outdir/tranformations/", mode: 'symlink'
 
     input:
     path reference
@@ -26,7 +26,7 @@ process calculate_transformation_wrt_maxIP {
 
 process apply_transformation {
 
-    publishDir "$params.outDir/registered/", mode: 'symlink'
+    publishDir "$params.global.outdir/registered/", mode: 'symlink'
 
     input:
     tuple val(round_nr), path(transform), path(image)
@@ -42,7 +42,7 @@ process apply_transformation {
 }
 
 process local_registration {
-    publishDir "$params.outDir/local_register/", mode: 'symlink'
+    publishDir "$params.global.outdir/local_register/", mode: 'symlink'
 
     input: 
     tuple val(x), path(ref_image), path(round_image) 

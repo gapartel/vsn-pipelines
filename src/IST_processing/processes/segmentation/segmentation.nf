@@ -3,10 +3,10 @@ nextflow.enable.dsl=2
 import java.nio.file.Paths
 
 moduleName="segmentation"
-binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/IST_processing/bin/$moduleName/")
 
 process stardist_segmentation {
-    publishDir "$params.outDir/segmented", mode: 'symlink'
+    publishDir "$params.global.outdir/segmented", mode: 'symlink'
 
     input:
     path image
@@ -22,7 +22,7 @@ process stardist_segmentation {
     
 }
 process otsu_thresholding {
-    publishDir "$params.outDir/segmented", mode: 'symlink'
+    publishDir "$params.global.outdir/segmented", mode: 'symlink'
 
     input:
     path image
@@ -39,7 +39,7 @@ process otsu_thresholding {
 }
 
 process collect_cell_properties {
-    publishDir "$params.outDir/segmented", mode: 'symlink'
+    publishDir "$params.global.outdir/segmented", mode: 'symlink'
 
     input:
     path properties
@@ -54,7 +54,7 @@ process collect_cell_properties {
     
 }
 process assign_genes_to_cells {
-    publishDir "$params.outDir/assigned", mode: 'symlink'
+    publishDir "$params.global.outdir/assigned", mode: 'symlink'
 
     input:
     tuple val(tile_nr), path(decoded_genes),path(labeled_images), path(properties)
@@ -69,7 +69,7 @@ process assign_genes_to_cells {
 }
 
 process assign_genes_to_cells_voronoi {
-    publishDir "$params.outDir/assigned", mode: 'symlink'
+    publishDir "$params.global.outdir/assigned", mode: 'symlink'
 
     input:
     tuple val(tile_nr), path(decoded_genes),path(labeled_images), path(properties)
@@ -84,7 +84,7 @@ process assign_genes_to_cells_voronoi {
 }
 
 process create_count_matrix {
-    publishDir "$params.outDir/final", mode: 'copy'
+    publishDir "$params.global.outdir/final", mode: 'copy'
 
     input:
     path assigned_genes

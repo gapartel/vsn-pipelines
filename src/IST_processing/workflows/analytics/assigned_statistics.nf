@@ -1,8 +1,9 @@
 nextflow.enable.dsl=2
 
-include{
+include {
         get_assignment_stats ;  create_assignment_html 
 } from "../../processes/analytics/analytics.nf"
+
 
 workflow assignment_statistics_workflow{
         take:
@@ -11,5 +12,5 @@ workflow assignment_statistics_workflow{
             // General statistics
             get_assignment_stats(assigned_genes)
             
-            create_assignment_html("$projectDir/src/IST-processing/assets/html_templates/assignment_report_template.html", get_assigned_stats.out)
+            create_assignment_html("$projectDir/src/IST-processing/assets/html_templates/assignment_report_template.html", get_assignment_stats.out)
 }

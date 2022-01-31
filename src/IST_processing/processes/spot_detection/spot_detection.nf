@@ -2,10 +2,10 @@ nextflow.enable.dsl=2
 import java.nio.file.Paths
 
 moduleName="spot_detection"
-binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/IST_processing/bin/$moduleName/")
 
 process spot_detection_reference {
-    publishDir "$params.outDir/blobs", mode: 'symlink'
+    publishDir "$params.global.outdir/blobs", mode: 'symlink'
 
     input:
     path ref_image
@@ -14,12 +14,12 @@ process spot_detection_reference {
     path "${ref_image.baseName}_blobs.csv"
 
     """
-    python $binDir/blogDetect.py $ref_image $params.min_sigma $params.max_sigma
+    python $binDir/blogDetect.py $ref_image $params.tools.IST_processing.min_sigma $params.tools.IST_processing.max_sigma
     """
 }
 
 process spot_detection_round {
-    publishDir "$params.outDir/hybs", mode: 'symlink'
+    publishDir "$params.global.outdir/hybs", mode: 'symlink'
 
     input:
     path round_image 
@@ -28,12 +28,12 @@ process spot_detection_round {
     path "${round_image.baseName}_hybs.csv"
 
     """
-    python $binDir/blogDetect.py $round_image $params.min_sigma $params.max_sigma $params.round_prefix $params.channel_prefix
+    python $binDir/blogDetect.py $round_image $params.tools.IST_processing.min_sigma $params.tools.IST_processing.max_sigma $params.round_prefix $params.channel_prefix
     """
 }
 
 process gather_intensities_in_rounds {
-    publishDir "$params.outDir/intensities", mode: 'symlink'
+    publishDir "$params.global.outdir/intensities", mode: 'symlink'
 
     input:
     path blobs
@@ -47,7 +47,7 @@ process gather_intensities_in_rounds {
     """
 }
 process get_max_intensities_over_channels {
-    publishDir "$params.outDir/intensities", mode: 'symlink'
+    publishDir "$params.global.outdir/intensities", mode: 'symlink'
 
     input:
     path all_intensities

@@ -35,12 +35,12 @@ workflow spot_detection_iss {
     ////////////////////////////////////////////////////////
     //This is for spot detection quality control purposes //
     ////////////////////////////////////////////////////////
-    if (params.spot_detectionQC==true){
+    if (params.tools.IST_processing.spot_detectionQC==true){
         transform_tile_coordinate_system(spot_detection_reference.out, grid_size_x, grid_size_y, tile_size_x, tile_size_y).set{transformed_ref_spots}
-        transform_tile_coordinate_system.out.collectFile(name: "$params.outDir/blobs/transformed_concat_blobs.csv", sort:true, keepHeader:true).set {transformed_blobs}
+        transform_tile_coordinate_system.out.collectFile(name: "$params.global.outdir/blobs/transformed_concat_blobs.csv", sort:true, keepHeader:true).set {transformed_blobs}
 
         spot_detection_round(round_images)
-        spot_detection_round.out.collectFile(name: "$params.outDir/hybs/concat_hybs.csv", sort:true, keepHeader:true).set {hybs}
+        spot_detection_round.out.collectFile(name: "$params.global.outdir/hybs/concat_hybs.csv", sort:true, keepHeader:true).set {hybs}
 
         transform_tile_coordinate_system2(spot_detection_round.out, grid_size_x, grid_size_y, tile_size_x, tile_size_y) .set {transformed_round_spots}
 
@@ -50,10 +50,10 @@ workflow spot_detection_iss {
 
 
     // Collect all spots in a seperate file
-    spot_detection_reference.out.collectFile(name: "$params.outDir/blobs/concat_blobs.csv", sort:true, keepHeader:true).set {blobs}
+    spot_detection_reference.out.collectFile(name: "$params.global.outdir/blobs/concat_blobs.csv", sort:true, keepHeader:true).set {blobs}
     blobs_value_channel = blobs.first() //Call first to convert it into a value channel to allow for multiple iteration of a process with multiple inputs
 
-    if (params.plot==true){
+    if (params.utils.plot==true){
         // Plot all detected spots
         plot_spots_whole_and_on_tiles(spot_detection_reference.out, blobs, reference, grid_size_x,grid_size_y, tile_size_x, tile_size_y)
     }
@@ -64,7 +64,7 @@ workflow spot_detection_iss {
     // Gather intesnity on each round image of every spot
     gather_intensities_in_rounds(blobs_value_channel, round_images_mapped)
     // Collect all data into one file for downstream analysis
-    gather_intensities_in_rounds.out.collectFile(name: "$params.outDir/intensities/concat_intensities.csv", sort:true, keepHeader:true).set {intensities}
+    gather_intensities_in_rounds.out.collectFile(name: "$params.global.outdir/intensities/concat_intensities.csv", sort:true, keepHeader:true).set {intensities}
     intensities_value_channel = intensities.first()
 
     get_max_intensities_over_channels(intensities_value_channel) 

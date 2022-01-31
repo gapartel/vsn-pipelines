@@ -1,6 +1,6 @@
 nextflow.enable.dsl=2
 
-params.stitchDir = "tiled"
+params.data.stitchDir = "tiled"
 
 include {
     calculate_biggest_resolution ; 
@@ -34,7 +34,7 @@ workflow standard_iss_tiling {
         // Dapi image
         DAPI
     main:
-        calculate_biggest_resolution(params.target_tile_x, params.target_tile_y, glob_pattern)
+        calculate_biggest_resolution(params.data.target_tile_x, params.data.target_tile_y, glob_pattern)
         // Rename variables for readability
         max_x_resolution =  calculate_biggest_resolution.out.max_x_resolution
         max_y_resolution = calculate_biggest_resolution.out.max_y_resolution 
@@ -53,14 +53,14 @@ workflow standard_iss_tiling {
         tile_dapi(pad_dapi.out, xdiv, ydiv)
         tile_image(register_wrt_maxIP_memory_friendly.out, xdiv, ydiv)
 
-        if (params.stitch==true){
+        if (params.utils.stitch==true){
             // Stitch tiles back as a control
-            stitch_ref_tiles(xdiv, ydiv, params.target_tile_x, params.target_tile_y, tile_ref.out)
-            stitch_dapi(xdiv, ydiv, params.target_tile_x, params.target_tile_y, tile_dapi.out)
+            stitch_ref_tiles(xdiv, ydiv, params.data.target_tile_x, params.data.target_tile_y, tile_ref.out)
+            stitch_dapi(xdiv, ydiv, params.data.target_tile_x, params.data.target_tile_y, tile_dapi.out)
 
             tile_image.out.map() {file -> tuple((file.baseName=~ /Round\d+/)[0],(file.baseName=~ /c\d+/)[0], file)} .set {mapped_rounds}
 
-            stitch_round_tiles(xdiv, ydiv, params.target_tile_x, params.target_tile_y, mapped_rounds)
+            stitch_round_tiles(xdiv, ydiv, params.data.target_tile_x, params.data.target_tile_y, mapped_rounds)
         }
 
     emit:
@@ -82,7 +82,7 @@ workflow standard_merfish_tiling {
         // Dapi image
         DAPI
     main:
-        calculate_biggest_resolution(params.target_tile_x, params.target_tile_y, glob_pattern)
+        calculate_biggest_resolution(params.data.target_tile_x, params.data.target_tile_y, glob_pattern)
 
         // Rename variables for readability
         max_x_resolution =  calculate_biggest_resolution.out.max_x_resolution
@@ -97,16 +97,16 @@ workflow standard_merfish_tiling {
         tile_image(pad_round.out, xdiv, ydiv)
 
 
-        if (params.stitch==true){
+        if (params.utils.stitch==true){
             // Stitch tiles back as a control
-            stitch_dapi(xdiv, ydiv, params.target_tile_x, params.target_tile_y, tile_dapi.out)
+            stitch_dapi(xdiv, ydiv, params.data.target_tile_x, params.data.target_tile_y, tile_dapi.out)
 
             // Group images by origin image, so that they can be stitched back
             tile_image.out.flatten().map() {file -> tuple((file.baseName=~ /$params.image_prefix\d+/)[0], file)} \
                                 | groupTuple(by:0) \
                                 | set {grouped_rounds}
 
-            stitch_image_tiles(xdiv, ydiv, params.target_tile_x, params.target_tile_y, grouped_rounds)
+            stitch_image_tiles(xdiv, ydiv, params.data.target_tile_x, params.data.target_tile_y, grouped_rounds)
         }
 
     emit:

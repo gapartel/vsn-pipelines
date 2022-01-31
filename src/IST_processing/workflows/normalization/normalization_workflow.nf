@@ -1,6 +1,6 @@
 nextflow.enable.dsl=2
 
-params.stitchDir = "normalized"
+params.data.stitchDir = "normalized"
 
 include{
     match_histogram ; clip_and_rescale;clip_and_rescale as clip_and_rescale_ref
@@ -42,7 +42,7 @@ workflow CLIP_AND_RESCALE_TILES {
 
 
         // stitch the tiles for visualization 
-        if (params.stitch==true){
+        if (params.utils.stitch==true){
             stitch_ref_tiles(tile_grid_size_x, tile_grid_size_y, tile_size_x, tile_size_y,clip_and_rescale_ref.out.collect())
        
             clip_and_rescale.out.map() {file -> tuple((file.baseName=~ /Round\d+/)[0],(file.baseName=~ /c\d+/)[0], file)} \

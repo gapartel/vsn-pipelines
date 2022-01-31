@@ -4,10 +4,10 @@ import java.nio.file.Paths
 
 moduleName="file_conversion"
 
-binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/IST_processing/bin/$moduleName/")
 
 process transform_tile_coordinate_system {
-    publishDir "$params.outDir/final", mode: 'copy'
+    publishDir "$params.global.outdir/final", mode: 'copy'
 
     input:
     path csv

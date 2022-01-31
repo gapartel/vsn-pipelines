@@ -27,11 +27,11 @@ workflow rename_files{
 }
 workflow convert_czi {
 
-    SPLIT_CZI_ROUNDS_INTO_CHANNEL_TIFS("$params.dataDir/*.czi")
+    SPLIT_CZI_ROUNDS_INTO_CHANNEL_TIFS("$params.data.dataDir/*.czi")
 }
 workflow quality_control{
 
-    intensity_diagnosing("$params.dataDir/$params.round_prefix*/${params.round_prefix}*_${params.channel_prefix}*.$params.extension")
+    intensity_diagnosing("$params.data.dataDir/$params.round_prefix*/${params.round_prefix}*_${params.channel_prefix}*.$params.extension")
 }
 
 workflow iss {

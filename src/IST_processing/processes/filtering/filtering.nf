@@ -3,11 +3,11 @@ nextflow.enable.dsl=2
 import java.nio.file.Paths
 
 moduleName="filtering"
-binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/IST_processing/bin/$moduleName/")
 
 
 process filter_ref {
-    publishDir "$params.outDir/filtered_ref/", mode: 'symlink'
+    publishDir "$params.global.outdir/filtered_ref/", mode: 'symlink'
 
     input:
     path image 
@@ -15,13 +15,13 @@ process filter_ref {
     path "${image.baseName}_filtered.tif" 
 
     """
-    python $binDir/whiteTophatFilter.py ${image} ${params.filter_radius}
+    python $binDir/whiteTophatFilter.py ${image} ${params.tools.IST_processing.filter_radius}
     """
 }
 
 process filter_round{
     // echo true
-    publishDir "$params.outDir/filtered_round/", mode: 'symlink'
+    publishDir "$params.global.outdir/filtered_round/", mode: 'symlink'
     
     input: 
     path image 
@@ -31,11 +31,11 @@ process filter_round{
 
     script:
     """
-    python $binDir/whiteTophatFilter.py ${image} ${params.filter_radius}
+    python $binDir/whiteTophatFilter.py ${image} ${params.tools.IST_processing.filter_radius}
     """
 }
 process filter_gaussian_high_pass{
-    publishDir "$params.outDir/filtered/high_passed/", mode: 'symlink'
+    publishDir "$params.global.outdir/filtered/high_passed/", mode: 'symlink'
     
     input: 
     path image 
@@ -50,7 +50,7 @@ process filter_gaussian_high_pass{
 }
 
 process filter_gaussian_low_pass{
-    publishDir "$params.outDir/filtered/low_passed", mode: 'symlink'
+    publishDir "$params.global.outdir/filtered/low_passed", mode: 'symlink'
     
     input: 
     path image 
@@ -66,7 +66,7 @@ process filter_gaussian_low_pass{
 }
 
 process deconvolve_PSF {
-    publishDir "$params.outDir/filtered/deconvolved/", mode: 'symlink'
+    publishDir "$params.global.outdir/filtered/deconvolved/", mode: 'symlink'
     
     input: 
     path image 

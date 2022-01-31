@@ -3,10 +3,10 @@ nextflow.enable.dsl=2
 import java.nio.file.Paths
 
 moduleName="normalization"
-binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/IST_processing/bin/$moduleName/")
 
 process clip_and_rescale {
-    publishDir "$params.outDir/normalized", mode: 'copy'
+    publishDir "$params.global.outdir/normalized", mode: 'copy'
 
     input: 
     path image
@@ -20,7 +20,7 @@ process clip_and_rescale {
     """
 }
 process equalize_histogram {
-    publishDir "$params.outDir/normalized", mode: 'symlink'
+    publishDir "$params.global.outdir/normalized", mode: 'symlink'
 
     input: 
     path image
@@ -35,7 +35,7 @@ process equalize_histogram {
 }
 
 process match_histogram {
-    publishDir "$params.outDir/normalized", mode: 'symlink'
+    publishDir "$params.global.outdir/normalized", mode: 'symlink'
 
     input: 
     path reference

@@ -3,11 +3,11 @@ nextflow.enable.dsl=2
 import java.nio.file.Paths
 
 moduleName="registration"
-binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/IST_processing/bin/$moduleName/")
 
 
 process register{
-    publishDir "$params.outDir/registered/", mode: 'symlink'
+    publishDir "$params.global.outdir/registered/", mode: 'symlink'
 
     input:
     path reference
@@ -25,7 +25,7 @@ process register{
 
 process calculate_transformation_wrt_maxIP {
 
-    publishDir "$params.outDir/tranformations/", mode: 'symlink'
+    publishDir "$params.global.outdir/tranformations/", mode: 'symlink'
 
     input:
     path reference
@@ -41,7 +41,7 @@ process calculate_transformation_wrt_maxIP {
 }
 process apply_transformation {
 
-    publishDir "$params.outDir/registered/", mode: 'symlink'
+    publishDir "$params.global.outdir/registered/", mode: 'symlink'
 
     input:
     tuple val(round_nr), path(transform), path(image)
@@ -58,7 +58,7 @@ process apply_transformation {
 // For this process, you need to map and combine your maxIP and round images to be transformed in the correct way
 process register_with_maxIP {
 
-    publishDir "$params.outDir/registered/", mode: 'symlink'
+    publishDir "$params.global.outdir/registered/", mode: 'symlink'
     echo=true
 
     input:
@@ -75,7 +75,7 @@ process register_with_maxIP {
 
 
 process merfish_registration {
-    publishDir "$params.outDir/registered/", mode: 'symlink'
+    publishDir "$params.global.outdir/registered/", mode: 'symlink'
 
     input: 
     path ref_image
@@ -95,7 +95,7 @@ process merfish_registration {
 // been grouped by some regex pattern, such as tiles. 
 // That's what the val(x) catches
 process local_registration {
-    publishDir "$params.outDir/local_register/", mode: 'symlink'
+    publishDir "$params.global.outdir/local_register/", mode: 'symlink'
 
     input: 
     tuple val(x), path(ref_image), path(round_image) 

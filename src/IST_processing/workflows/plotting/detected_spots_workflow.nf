@@ -1,6 +1,6 @@
 nextflow.enable.dsl=2
 
-params.stitchDir = "detected_spots_plotted"
+params.data.stitchDir = "detected_spots_plotted"
 
 include {
     plot_detected_spots; plot_detected_spots_on_tile

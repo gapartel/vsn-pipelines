@@ -3,11 +3,11 @@ nextflow.enable.dsl=2
 import java.nio.file.Paths
 
 moduleName="downstream_analysis"
-binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/IST_processing/bin/$moduleName/")
 
 
 process umap {
-    publishDir "$params.outDir/final/", mode: 'copy'
+    publishDir "$params.global.outdir/final/", mode: 'copy'
 
 
     input:
@@ -23,7 +23,7 @@ process umap {
 }
 
 process find_seurat_clusters {
-    publishDir "$params.outDir/final/", mode: 'copy'
+    publishDir "$params.global.outdir/final/", mode: 'copy'
 
     input:
     path count_matrix

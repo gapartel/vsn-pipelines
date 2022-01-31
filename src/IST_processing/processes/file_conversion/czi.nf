@@ -4,11 +4,11 @@ import java.nio.file.Paths
 
 moduleName="file_conversion"
 
-binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/IST_processing/bin/$moduleName/")
 
 
 process SPLIT_CZI_IN_CHANNELS {
-    publishDir "$outDir", mode: 'symlink'
+    publishDir "$params.global.outdir", mode: 'symlink'
     memory '2 GB'
     input:
     path image

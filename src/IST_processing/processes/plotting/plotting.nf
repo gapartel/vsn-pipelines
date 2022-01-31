@@ -3,10 +3,10 @@ nextflow.enable.dsl=2
 import java.nio.file.Paths
 
 moduleName="plotting"
-binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/IST_processing/bin/$moduleName/")
 
 process plotDecodingPotential {
-    publishDir "$params.outDir/analytics/decoded_stats/assets", mode: 'copy'
+    publishDir "$params.global.outdir/analytics/decoded_stats/assets", mode: 'copy'
     input: 
     path decoded_genes
 
@@ -19,7 +19,7 @@ process plotDecodingPotential {
     """
 }
 process  plotTileDecodingPotential {
-    publishDir "$params.outDir/analytics/decoded_stats/assets", mode: 'copy'
+    publishDir "$params.global.outdir/analytics/decoded_stats/assets", mode: 'copy'
     input: 
     path decoded_genes
 
@@ -33,7 +33,7 @@ process  plotTileDecodingPotential {
 
 }
 process plot_decoded_spots {
-    publishDir "$params.outDir/plots", mode: 'copy'
+    publishDir "$params.global.outdir/plots", mode: 'copy'
 
     input:
     path decoded_genes
@@ -55,7 +55,7 @@ process plot_decoded_spots {
     """
 }
 process plot_detected_spots {
-    publishDir "$params.outDir/plots", mode: 'copy'
+    publishDir "$params.global.outdir/plots", mode: 'copy'
 
     input:
     path detected_spots
@@ -75,7 +75,7 @@ process plot_detected_spots {
 }
 
 process plot_detected_spots_on_tile {
-    publishDir "$params.outDir/plots/tiles", mode: 'copy'
+    publishDir "$params.global.outdir/plots/tiles", mode: 'copy'
 
     input:
     tuple val(tile_nr), path(tile_image),path(detected_spots)
@@ -89,7 +89,7 @@ process plot_detected_spots_on_tile {
     """
 }
 process plot_decoded_genes_on_tile {
-    publishDir "$params.outDir/plots/tiles", mode: 'copy'
+    publishDir "$params.global.outdir/plots/tiles", mode: 'copy'
 
     input:
     tuple val(tile_nr), path(tile_image), path(decoded_genes)
@@ -103,7 +103,7 @@ process plot_decoded_genes_on_tile {
 }
 
 process plot_segmentation_labels_on_ref {
-    publishDir "$params.outDir/plots/segmentation/", mode: 'copy'
+    publishDir "$params.global.outdir/plots/segmentation/", mode: 'copy'
 
     input:
     tuple val(tile_nr), path(labeled_image),path(original_image)
@@ -118,7 +118,7 @@ process plot_segmentation_labels_on_ref {
     """
 }
 process plot_segmentation_labels_on_dapi {
-    publishDir "$params.outDir/plots/segmentation/", mode: 'copy'
+    publishDir "$params.global.outdir/plots/segmentation/", mode: 'copy'
 
     input:
     tuple val(tile_nr), path(labeled_image),path(original_image)
@@ -133,7 +133,7 @@ process plot_segmentation_labels_on_dapi {
 }
 
 process plot_segmentation_labels {
-    publishDir "$params.outDir/plots/segmentation/", mode: 'copy'
+    publishDir "$params.global.outdir/plots/segmentation/", mode: 'copy'
 
     input:
     path labeled_image
@@ -148,7 +148,7 @@ process plot_segmentation_labels {
 }
 
 process plot_assigned_genes {
-    publishDir "$params.outDir/plots/assigned_genes/", mode: 'copy'
+    publishDir "$params.global.outdir/plots/assigned_genes/", mode: 'copy'
 
     input:
     tuple val(tile_nr), path(assigned_genes), path(labeled_image)
@@ -163,7 +163,7 @@ process plot_assigned_genes {
 }
 
 process plot_specific_barcode {
-    publishDir "$params.outDir/plots/quality_control/", mode: 'copy'
+    publishDir "$params.global.outdir/plots/quality_control/", mode: 'copy'
 
     input:
     path image

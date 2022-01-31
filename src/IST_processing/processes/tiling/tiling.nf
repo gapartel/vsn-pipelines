@@ -4,7 +4,7 @@ import java.nio.file.Paths
 
 moduleName = "tiling"
 //workflow.projectDir points to the dir that the initial workflow originates from
-binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/IST_processing/bin/$moduleName/")
 
 process calculate_biggest_resolution {
     echo = true
@@ -46,7 +46,7 @@ process calculate_tile_size{
 }
 
 process pad_image { 
-    publishDir "$params.outDir/padded", mode: 'symlink'
+    publishDir "$params.global.outdir/padded", mode: 'symlink'
 
     input:
     path image
@@ -63,7 +63,7 @@ process pad_image {
 
 
 process tile_image {
-    publishDir "$params.outDir/tiles/", mode: 'symlink'
+    publishDir "$params.global.outdir/tiles/", mode: 'symlink'
     input:
     path image
     val xdiv

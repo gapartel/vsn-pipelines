@@ -3,11 +3,11 @@ nextflow.enable.dsl=2
 import java.nio.file.Paths
 
 moduleName="quality_control"
-binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/IST_processing/bin/$moduleName/")
 
 
 process calculate_precision {
-    publishDir "$params.outDir/quality_control/spot_detection_QC", mode: 'symlink'
+    publishDir "$params.global.outdir/quality_control/spot_detection_QC", mode: 'symlink'
     input:
     path ref_spots
     tuple val(round_nr), path(round_spots)
@@ -18,12 +18,12 @@ process calculate_precision {
 
     script:
     """
-    python $binDir/calculatePrecision.py $ref_spots $params.pixel_distance $round_nr $round_spots
+    python $binDir/calculatePrecision.py $ref_spots $params.tools.IST_processing.pixel_distance $round_nr $round_spots
     """
 }
 
 process calculate_recall {
-    publishDir "$params.outDir/quality_control/spot_detection_QC", mode: 'symlink'
+    publishDir "$params.global.outdir/quality_control/spot_detection_QC", mode: 'symlink'
     input:
     path ref_spots
     path closest_ref_point_dicts
@@ -39,7 +39,7 @@ process calculate_recall {
 }
 
 process create_html_report {
-    publishDir "$params.outDir/quality_control/spot_detection_QC", mode: "copy"
+    publishDir "$params.global.outdir/quality_control/spot_detection_QC", mode: "copy"
 
     input: 
     path template

@@ -3,11 +3,11 @@ nextflow.enable.dsl=2
 import java.nio.file.Paths
 
 /* moduleName="quality_control" */
-binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/IST_processing/bin/$moduleName/")
 
 
 process calculate_precision {
-    publishDir "$params.outDir/quality_control/spot_detection_QC/precision", mode: 'symlink'
+    publishDir "$params.global.outdir/quality_control/spot_detection_QC/precision", mode: 'symlink'
     input:
     tuple val(tile_nr), path(ref_spots), val(round_nr), path(round_spots)
 
@@ -22,7 +22,7 @@ process calculate_precision {
 }
 
 process collect_precision {
-    publishDir "$params.outDir/quality_control/spot_detection_QC/precision", mode: 'symlink'
+    publishDir "$params.global.outdir/quality_control/spot_detection_QC/precision", mode: 'symlink'
     input:
     tuple val(round_nr), path(precision_stats)
 
@@ -36,7 +36,7 @@ process collect_precision {
 }
 
 process calculate_recall {
-    publishDir "$params.outDir/quality_control/spot_detection_QC/recall", mode: 'symlink'
+    publishDir "$params.global.outdir/quality_control/spot_detection_QC/recall", mode: 'symlink'
     input:
     tuple val(tile_nr), path(ref_spots), path(closest_ref_point_dicts)
 
@@ -52,7 +52,7 @@ process calculate_recall {
 }
 
 process collect_recall {
-    publishDir "$params.outDir/quality_control/spot_detection_QC/recall", mode: 'symlink'
+    publishDir "$params.global.outdir/quality_control/spot_detection_QC/recall", mode: 'symlink'
     input:
     path recall_stat_list
     path round_not_found_list
@@ -68,7 +68,7 @@ process collect_recall {
 }
 
 process create_html_report {
-    publishDir "$params.outDir/quality_control/spot_detection_QC", mode: "copy"
+    publishDir "$params.global.outdir/quality_control/spot_detection_QC", mode: "copy"
 
     input: 
     path template
@@ -84,7 +84,7 @@ process create_html_report {
     """
 }
 workflow{
-    params.outDir = "/media/tool/gabriele_data/1442_OB/maxIP-seperate-channels/results_correct_codebook_whiteDisk3_minSigma2_maxSigma20_noNorm_stardistSegmentation_voronoiAssigned_spotDetectionQC_without_global_registration/quality_control_pixel_distance_1/"
+    params.global.outdir = "/media/tool/gabriele_data/1442_OB/maxIP-seperate-channels/results_correct_codebook_whiteDisk3_minSigma2_maxSigma20_noNorm_stardistSegmentation_voronoiAssigned_spotDetectionQC_without_global_registration/quality_control_pixel_distance_1/"
 
     ref_spots = Channel.fromPath("/media/tool/gabriele_data/1442_OB/maxIP-seperate-channels/results_correct_codebook_whiteDisk3_minSigma2_maxSigma20_noNorm_stardistSegmentation_voronoiAssigned_spotDetectionQC_without_global_registration/blobs/REF_padded_tiled_*_filtered_blobs.csv")
 

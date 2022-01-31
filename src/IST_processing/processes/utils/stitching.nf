@@ -4,13 +4,13 @@ nextflow.enable.dsl=2
 import java.nio.file.Paths
 
 moduleName="utils"
-binDir = Paths.get(workflow.projectDir.toString(), "src/bin/$moduleName/")
+binDir = Paths.get(workflow.projectDir.toString(), "src/IST_processing/bin/$moduleName/")
 
 // stitchDir is supposed to be overwritten by the top-level workflow that includes it
-params.stitchDir = "stitched"
+params.data.stitchDir = "stitched"
 
 process stitch_ref_tiles {
-    publishDir "$params.outDir/stitched/$params.stitchDir/", mode: 'move'
+    publishDir "$params.global.outdir/stitched/$params.data.stitchDir/", mode: 'move'
 
     input: 
     val tile_grid_size_x
@@ -29,7 +29,7 @@ process stitch_ref_tiles {
 
 }
 process stitch_rgb_tiles {
-    publishDir "$params.outDir/stitched/$params.stitchDir/", mode: 'move'
+    publishDir "$params.global.outdir/stitched/$params.data.stitchDir/", mode: 'move'
 
     input: 
     val tile_grid_size_x
@@ -48,7 +48,7 @@ process stitch_rgb_tiles {
 
 }
 process stitch_round_tiles {
-    publishDir "$params.outDir/stitched/$params.stitchDir/", mode: 'move'
+    publishDir "$params.global.outdir/stitched/$params.data.stitchDir/", mode: 'move'
 
     input: 
     val tile_grid_size_x
@@ -68,7 +68,7 @@ process stitch_round_tiles {
 }
 
 process stitch_image_tiles {
-    publishDir "$params.outDir/stitched/$params.stitchDir/", mode: 'move'
+    publishDir "$params.global.outdir/stitched/$params.data.stitchDir/", mode: 'move'
 
     input: 
     val tile_grid_size_x
