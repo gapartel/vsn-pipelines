@@ -45,7 +45,7 @@ process filter_gaussian_high_pass{
 
     script:
     """
-    python $binDir/gaussianHighPass.py ${image} ${params.high_pass_sigma}
+    python $binDir/gaussianHighPass.py ${image} ${params.tools.IST_processing.high_pass_sigma}
     """
 }
 
@@ -61,7 +61,7 @@ process filter_gaussian_low_pass{
     script:
 
     """
-    python $binDir/gaussianLowPass.py ${image} ${params.low_pass_sigma}
+    python $binDir/gaussianLowPass.py ${image} ${params.tools.IST_processing.low_pass_sigma}
     """
 }
 
@@ -76,6 +76,6 @@ process deconvolve_PSF {
 
     script:
     """
-    python $binDir/restoreRichardsonLucy.py ${image} $params.deconvolve_sigma $params.iterations 
+    python $binDir/restoreRichardsonLucy.py ${image} $params.tools.IST_processing.deconvolve_sigma $params.tools.IST_processing.iterations 
     """
 }

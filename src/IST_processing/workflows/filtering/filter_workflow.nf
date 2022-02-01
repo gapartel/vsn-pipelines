@@ -56,7 +56,7 @@ workflow white_tophat_filter_merfish {
 
         // stitche the tiles for visualization 
         if (params.utils.stitch==true){
-            filter_round.out.map() {file -> tuple((file.baseName=~ /$params.image_prefix\d+/)[0], file)} \
+            filter_round.out.map() {file -> tuple((file.baseName=~ /$params.data.image_prefix\d+/)[0], file)} \
                                  .groupTuple(by:[0]).set {grouped_rounds}
             stitch_image_tiles(tile_grid_size_x, tile_grid_size_y, tile_size_x, tile_size_y,grouped_rounds)
         }
@@ -80,7 +80,7 @@ workflow gaussian_high_pass_filter_workflow {
         // stitche the tiles for visualization 
 
         if (params.utils.stitch==true){
-               filter_gaussian_high_pass.out.map() {file -> tuple((file.baseName=~ /$params.image_prefix\d+/)[0], file)} \
+               filter_gaussian_high_pass.out.map() {file -> tuple((file.baseName=~ /$params.data.image_prefix\d+/)[0], file)} \
                             .groupTuple(by:[0]).set {grouped_rounds}
                             
                stitch_image_tiles(tile_grid_size_x, tile_grid_size_y, tile_size_x, tile_size_y,grouped_rounds)
@@ -106,7 +106,7 @@ workflow gaussian_low_pass_filter_workflow {
         // stitche the tiles for visualization 
 
         if (params.utils.stitch==true){
-            filter_gaussian_low_pass.out.map() {file -> tuple((file.baseName=~ /$params.image_prefix\d+/)[0], file)} \
+            filter_gaussian_low_pass.out.map() {file -> tuple((file.baseName=~ /$params.data.image_prefix\d+/)[0], file)} \
                               .groupTuple(by:[0]).set {grouped_rounds}
                             
             stitch_image_tiles(tile_grid_size_x, tile_grid_size_y, tile_size_x, tile_size_y,grouped_rounds)
@@ -132,7 +132,7 @@ workflow deconvolve_PSF_workflow {
         if (params.utils.stitch==true){
         // stitche the tiles for visualization 
 
-            deconvolve_PSF.out.map() {file -> tuple((file.baseName=~ /$params.image_prefix\d+/)[0], file)} \
+            deconvolve_PSF.out.map() {file -> tuple((file.baseName=~ /$params.data.image_prefix\d+/)[0], file)} \
                                 .groupTuple(by:[0]).set {grouped_rounds}
 
             stitch_image_tiles(tile_grid_size_x, tile_grid_size_y, tile_size_x, tile_size_y,grouped_rounds)

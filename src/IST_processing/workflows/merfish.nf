@@ -51,7 +51,7 @@ workflow merfish {
     main:
         // If n_tiles isn't in the config, that means the input images are whole-tissue images
         if (!params.data.containsKey("n_tiles")){
-            glob_pattern ="${params.data.dataDir}/${params.image_prefix}*.${params.extension}" 
+            glob_pattern ="${params.data.dataDir}/${params.data.image_prefix}*.${params.extension}" 
             images = Channel.fromPath(glob_pattern)
             images = convert_to_uin16(images)
 

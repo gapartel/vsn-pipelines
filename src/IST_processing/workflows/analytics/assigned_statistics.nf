@@ -12,5 +12,5 @@ workflow assignment_statistics_workflow{
             // General statistics
             get_assignment_stats(assigned_genes)
             
-            create_assignment_html("$projectDir/src/IST-processing/assets/html_templates/assignment_report_template.html", get_assignment_stats.out)
+            create_assignment_html("$projectDir/src/IST_processing/assets/html_templates/assignment_report_template.html", get_assignment_stats.out)
 }

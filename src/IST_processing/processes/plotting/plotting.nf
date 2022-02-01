@@ -15,7 +15,7 @@ process plotDecodingPotential {
 
     script:
     """
-    python $binDir/plotDecodingPotential.py $decoded_genes $params.codebook 
+    python $binDir/plotDecodingPotential.py $decoded_genes $params.data.codebook 
     """
 }
 process  plotTileDecodingPotential {
@@ -28,7 +28,7 @@ process  plotTileDecodingPotential {
 
     script:
     """
-    python $binDir/plotTileDecodingPotential.py $decoded_genes $params.codebook 
+    python $binDir/plotTileDecodingPotential.py $decoded_genes $params.data.codebook 
     """
 
 }

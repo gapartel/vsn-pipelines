@@ -20,6 +20,6 @@ workflow calculate_iss_precision_and_recall {
 
     calculate_recall(ref_spots, calculate_precision.out[0])
 
-    create_html_report("$projectDir/src/IST-processing/assets/html_templates/spot_detection_qc_template.html", calculate_recall.out, calculate_precision.out[1])
+    create_html_report("$projectDir/src/IST_processing/assets/html_templates/spot_detection_qc_template.html", calculate_recall.out, calculate_precision.out[1])
     
 }

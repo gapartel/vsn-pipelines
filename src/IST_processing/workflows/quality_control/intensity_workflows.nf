@@ -33,6 +33,6 @@ workflow intensity_diagnosing{
   collect_intensity_analytics(intensities)
   intensity_table = collect_intensity_analytics.out
 
-  create_html_report(params.nr_rounds,params.nr_channels,"$projectDir/src/IST-processing/assets/html_templates/intensity_report_template.html", intensity_table,round_plots, channel_plots, all_plots)
+  create_html_report(params.data.nr_rounds,params.data.nr_channels,"$projectDir/src/IST_processing/assets/html_templates/intensity_report_template.html", intensity_table,round_plots, channel_plots, all_plots)
 
 }   

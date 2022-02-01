@@ -16,7 +16,7 @@ process decode_sequential_max_intensity {
     path "decoded_tile*.csv"
 
     """
-    python $binDir/decodeSequentialMaxIntensity.py ${max_intensities} ${params.codebook}
+    python $binDir/decodeSequentialMaxIntensity.py ${max_intensities} ${params.data.codebook}
     """
 
 }
@@ -32,7 +32,7 @@ process pixel_based_decoding {
     path "decoded_${tile_nr}.csv"
 
     """
-    python $binDir/decodePixelBased.py $x_dim $y_dim $tile_nr $params.codebook $params.bit_length $params.distance_threshold $params.image_prefix $tile_images 
+    python $binDir/decodePixelBased.py $x_dim $y_dim $tile_nr $params.data.codebook $params.data.bit_length $params.tools.IST_processing.distance_threshold $params.data.image_prefix $tile_images 
     """
 
 }
@@ -50,7 +50,7 @@ process nn_pixel_based_decoding {
     path "decoded_${tile_nr}.csv"
 
     """
-    python $binDir/nnDecodePixelBased.py $x_dim $y_dim $min_area $tile_nr $params.codebook $params.bit_length $params.distance_threshold $params.image_prefix $tile_images 
+    python $binDir/nnDecodePixelBased.py $x_dim $y_dim $min_area $tile_nr $params.data.codebook $params.data.bit_length $params.tools.IST_processing.distance_threshold $params.data.image_prefix $tile_images 
     """
 
 }

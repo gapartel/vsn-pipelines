@@ -65,7 +65,7 @@ process get_spot_based_decoding_stats {
     script:
 
     """
-    max_expressed_non_recognized_barcode=(`python $binDir/extractStatsFromDecodedBarcodes.py $decoded_genes $params.codebook $params.nr_rounds $params.nr_channels`)
+    max_expressed_non_recognized_barcode=(`python $binDir/extractStatsFromDecodedBarcodes.py $decoded_genes $params.data.codebook $params.data.nr_rounds $params.data.nr_channels`)
     """
 }
 
