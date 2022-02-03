@@ -89,3 +89,16 @@ workflow getChannelFromFilePath {
 
 }
 
+workflow getISTChannel {
+    take:
+        glob
+    main:
+        if(glob.contains(',')) {
+            glob = Arrays.asList(glob.split(',')); 
+        }
+        data_channel = Channel
+            .fromPath(glob, type: 'file', checkIfExists: true)
+            }
+    emit:
+        data_channel
+}

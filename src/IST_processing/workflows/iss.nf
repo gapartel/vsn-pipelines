@@ -57,6 +57,8 @@ include {
 
 
 workflow iss {
+    take:
+        rounds
 
     main:
         // Pipeline most definitely needs params.reference to exists, so create one out of the first round if it does not exist yet

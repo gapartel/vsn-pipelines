@@ -241,6 +241,11 @@ workflow getDataChannel {
                 }
             )
         }
+
+        if(params.data.containsKey("iss")) {
+            data = Channel.fromPath("${params.data.dataDir}/${params.data.round_prefix}*/${params.data.round_prefix}*_${params.data.channel_prefix}*.${params.data.extension}")
+            
+        }
         data.ifEmpty { exit 1, "Pipeline cannot run: no data provided." }
 
         if(!params.containsKey('quiet')) data.view()

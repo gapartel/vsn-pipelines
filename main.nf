@@ -1732,12 +1732,14 @@ workflow iss {
     include {
             iss as ISS_PROCESSING_PIPELINE
     } from "./src/IST_processing/main.nf"
-    ISS_PROCESSING_PIPELINE()
+
+    data = getDataChannel | ISS_PROCESSING_PIPELINE()
 
 }
 workflow merfish {
     include {
         merfish as MERFISH_PROCESSING_PIPELINE
     } from "./src/IST_processing/main.nf"
-    MERFISH_PROCESSING_PIPELINE()
+
+    data = getDataChannel | MERFISH_PROCESSING_PIPELINE()
 }
