@@ -1,3 +1,4 @@
+FROM nvidia/cuda:11.2.1-cudnn8-devel-ubuntu18.04
 ENV DEBIAN_FRONTEND=noninteractive 
 
 # set bash as current shell
@@ -8,6 +9,7 @@ SHELL ["/bin/bash", "-c"]
 RUN apt-get update
 RUN apt-get install -y wget bzip2 ca-certificates git libglib2.0-0 libstdc++6 && \
         apt-get clean
+RUN apt-get install ffmpeg libsm6 libxext6  -y && apt-get clean
 	
 RUN wget --quiet https://repo.anaconda.com/archive/Anaconda3-2020.02-Linux-x86_64.sh -O ~/anaconda.sh && \
         /bin/bash ~/anaconda.sh -b -p /opt/conda && \
@@ -27,6 +29,6 @@ RUN conda update conda \
     && conda env create -f /tmp/environment.yml \
     && conda clean -afy
 
-RUN echo "conda activate spage2vec_gpu" >> ~/.bashrc
-ENV PATH /opt/conda/envs/spage2vec_gpu/bin:$PATH
-ENV CONDA_DEFAULT_ENV $spage2vec_gpu
+RUN echo "conda activate staple" >> ~/.bashrc
+ENV PATH /opt/conda/envs/staple/bin:$PATH
+ENV CONDA_DEFAULT_ENV $staple
