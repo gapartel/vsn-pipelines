@@ -242,7 +242,7 @@ workflow getDataChannel {
             )
         }
 
-        if(params.data.containsKey("iss")) {
+        if(params.data.containsKey("iss") && params.data.iss) {
             data = Channel.fromPath("${params.data.dataDir}/${params.data.round_prefix}*/${params.data.round_prefix}*_${params.data.channel_prefix}*.${params.data.extension}")
             
         }

@@ -98,7 +98,6 @@ workflow getISTChannel {
         }
         data_channel = Channel
             .fromPath(glob, type: 'file', checkIfExists: true)
-            }
     emit:
         data_channel
 }

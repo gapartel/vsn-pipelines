@@ -35,8 +35,10 @@ workflow quality_control{
 }
 
 workflow iss {
-
-    iss_pipeline()
+    take:
+        data
+    main:
+        iss_pipeline(data)
 }
 workflow merfish {
 
