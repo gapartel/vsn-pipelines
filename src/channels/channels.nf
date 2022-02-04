@@ -244,7 +244,15 @@ workflow getDataChannel {
 
         if(params.data.containsKey("iss") && params.data.iss) {
             data = Channel.fromPath("${params.data.dataDir}/${params.data.round_prefix}*/${params.data.round_prefix}*_${params.data.channel_prefix}*.${params.data.extension}")
-            
+        }
+        if(params.data.containsKey("merfish") && params.data.merfish) {
+            if (!params.data.containsKey("n_tiles")){
+                glob_pattern ="${params.data.dataDir}/${params.data.image_prefix}*.${params.data.extension}" 
+            }
+            else {
+                glob_pattern ="${params.data.dataDir}/${params.data.tile_prefix}*${params.data.image_prefix}*.${params.data.extension}" 
+            }
+            data = Channel.fromPath(glob_pattern)
         }
         data.ifEmpty { exit 1, "Pipeline cannot run: no data provided." }
 

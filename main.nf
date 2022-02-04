@@ -1741,5 +1741,5 @@ workflow merfish {
         merfish as MERFISH_PROCESSING_PIPELINE
     } from "./src/IST_processing/main.nf"
 
-    data = getDataChannel | MERFISH_PROCESSING_PIPELINE()
+    data = getDataChannel | MERFISH_PROCESSING_PIPELINE
 }

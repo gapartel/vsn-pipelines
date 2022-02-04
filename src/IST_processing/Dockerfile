@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.2.1-cudnn8-devel-ubuntu18.04
+FROM ubuntu:18.04
 ENV DEBIAN_FRONTEND=noninteractive 
 
 # set bash as current shell

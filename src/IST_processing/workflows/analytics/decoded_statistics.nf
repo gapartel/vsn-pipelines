@@ -28,7 +28,6 @@ workflow iss_decoding_statistics{
             // Decoding intensity based on thresholds
             plot_decoding_intensity_QC(decoded_genes)
             
-            print(projectDir)
             create_spot_based_decoding_html("$projectDir/src/IST_processing/assets/html_templates/decoding_report_template.html",get_spot_based_decoding_stats.out, plotDecodingPotential.out, plot_decoding_intensity_QC.out)
 
 }

@@ -31,7 +31,7 @@ workflow convert_czi {
 }
 workflow quality_control{
 
-    intensity_diagnosing("$params.data.dataDir/$params.round_prefix*/${params.round_prefix}*_${params.channel_prefix}*.$params.extension")
+    intensity_diagnosing("$params.data.dataDir/$params.round_prefix*/${params.round_prefix}*_${params.channel_prefix}*.$params.data.extension")
 }
 
 workflow iss {
@@ -41,8 +41,10 @@ workflow iss {
         iss_pipeline(data)
 }
 workflow merfish {
-
-    merfish_pipeline()
+    take:
+        data
+    main:
+        merfish_pipeline(data)
 }
 workflow test_entry(){
     print("tested")

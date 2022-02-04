@@ -211,4 +211,6 @@ dependencies:
     - aicspylibczi==3.0.3
     - csbdeep==0.6.3
     - imagecodecs==2021.8.26
+    - seaborn==0.11.2
     - stardist==0.7.3
+    - tqdm==4.62.3

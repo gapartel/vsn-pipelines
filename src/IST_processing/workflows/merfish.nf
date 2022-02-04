@@ -47,12 +47,13 @@ include {
 } from "./analytics/decoded_statistics.nf"
 
 workflow merfish {
+    take:
+        images
 
     main:
         // If n_tiles isn't in the config, that means the input images are whole-tissue images
         if (!params.data.containsKey("n_tiles")){
-            glob_pattern ="${params.data.dataDir}/${params.data.image_prefix}*.${params.extension}" 
-            images = Channel.fromPath(glob_pattern)
+            glob_pattern ="${params.data.dataDir}/${params.data.image_prefix}*.${params.data.extension}" 
             images = convert_to_uin16(images)
 
             // Tile the images into equal sized tiles, and store the grid parameters
@@ -75,7 +76,6 @@ workflow merfish {
         // Otherwise, the images are already tiled, so the input to image processing needs to be done differently
         else{
             glob_pattern ="${params.data.dataDir}/${params.data.tile_prefix}*${params.data.image_prefix}*.${params.data.extension}" 
-            images = Channel.fromPath(glob_pattern)
             images = convert_to_uin16(images)
             tiled_rounds = images
 
@@ -103,7 +103,7 @@ workflow merfish {
                                         | groupTuple()
                                         | set {grouped_images}
                                         
-        pixel_based_decoding(params.data.target_tile_x, params.data.target_tile_y, params.tools.min_area, grouped_images)
+        pixel_based_decoding(params.data.target_tile_x, params.data.target_tile_y, params.tools.IST_processing.min_area, grouped_images)
         pixel_based_decoding.out.collectFile(name: "$params.global.outdir/decoded/concat_decoded_genes.csv", sort:true, keepHeader:true).set {decoded_genes}
 
         // Analysis processes only to do if the input image are whole-slide
