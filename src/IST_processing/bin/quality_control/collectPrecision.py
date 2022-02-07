@@ -16,7 +16,6 @@ for json_path in attribute_jsons_list:
     with open(json_path, 'r') as json_file:
         # round_nr  = int(re.findall(r"\d+", re.findall(r"Round\d+", json_path)[0])[0])
         data = json.load(json_file)
-        print(data)
         for attribute, value in data.items():
             total_attributes_dict[attribute] = total_attributes_dict.get(attribute, 0) + value
 # Watch out, just incrementing values will not always be logical, for instance when cumulating ratio's, or the round number, so we hard-adapt that, will probably result in keyErrors down the line
