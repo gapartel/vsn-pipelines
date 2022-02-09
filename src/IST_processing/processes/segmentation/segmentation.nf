@@ -40,6 +40,7 @@ process otsu_thresholding {
 
 process collect_cell_properties {
     publishDir "$params.global.outdir/segmented", mode: 'symlink'
+    publishDir "$params.global.outdir/outs", mode: 'copy'
 
     input:
     path properties
@@ -85,6 +86,7 @@ process assign_genes_to_cells_voronoi {
 
 process create_count_matrix {
     publishDir "$params.global.outdir/final", mode: 'copy'
+    publishDir "$params.global.outdir/outs", mode: 'copy'
 
     input:
     path assigned_genes

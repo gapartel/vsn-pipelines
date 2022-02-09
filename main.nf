@@ -1734,9 +1734,9 @@ workflow iss {
     } from "./src/IST_processing/main.nf"
 
     data = getDataChannel | ISS_PROCESSING_PIPELINE
-
 }
 workflow merfish {
+
     include {
         merfish as MERFISH_PROCESSING_PIPELINE
     } from "./src/IST_processing/main.nf"
