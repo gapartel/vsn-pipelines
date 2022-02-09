@@ -111,5 +111,7 @@ workflow iss {
 
        // Copy every symlink and clean up work dir 
        /* clean_work_dir() */
+       /* emit: */
+       /*      outs_dir =  "$params.global.outdir/outs" // Emit path to outs_dir to serve as input for downstream analysis */
     
 }

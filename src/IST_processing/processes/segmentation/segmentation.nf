@@ -40,13 +40,13 @@ process otsu_thresholding {
 
 process collect_cell_properties {
     publishDir "$params.global.outdir/segmented", mode: 'symlink'
-    publishDir "$params.global.outdir/outs", mode: 'copy'
 
     input:
     path properties
     
     output:
-    path "concat_segmented_properties.csv"
+    path "concat_segmented_properties.csv", emit: concat_segmented_properties
+    path "local_coords.csv", emit: local_coords
 
     script:
     """
@@ -92,7 +92,7 @@ process create_count_matrix {
     path assigned_genes
     
     output:
-    path "count_matrix.csv"
+    path "matrix.csv"
 
     script:
     """

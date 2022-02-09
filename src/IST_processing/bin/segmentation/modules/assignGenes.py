@@ -44,7 +44,7 @@ def assignGenesToCellsVoronoi(labeled_image: str, decoded_genes: str, cell_prope
         closest_cell_distance = np.inf
         # Iterate over each cell and find the closest one
         for cell in cell_properties_df.itertuples():
-            cell_vector = np.array([cell.Center_X, cell.Center_Y])
+            cell_vector = np.array([cell.X, cell.Y])
             distance = np.linalg.norm(row_vector - cell_vector)
 
             if distance < closest_cell_distance:
