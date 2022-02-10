@@ -118,7 +118,5 @@ workflow merfish {
         // Calculate assignment stats
         assignment_statistics_workflow(segmentation.out.concat_assigned_genes)
 
-        emit:
-            outs_dir =  "$params.global.outdir/outs" // Emit path to outs_dir to serve as input for downstream analysis
 
 }

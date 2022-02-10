@@ -39,14 +39,12 @@ workflow iss {
         data
     main:
         iss_pipeline(data)
+        
 }
 workflow merfish {
     take:
         data
     main:
         merfish_pipeline(data)
-}
-workflow test_entry(){
-    print("tested")
 }
 
