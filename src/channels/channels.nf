@@ -242,10 +242,10 @@ workflow getDataChannel {
             )
         }
 
-        if(params.data.containsKey("iss") && params.data.iss) {
+        if(params.data.containsKey("iss") && params.data.iss && !params.data.containsKey("spatial_csv")) {
             data = Channel.fromPath("${params.data.dataDir}/${params.data.round_prefix}*/${params.data.round_prefix}*_${params.data.channel_prefix}*.${params.data.extension}")
         }
-        if(params.data.containsKey("merfish") && params.data.merfish) {
+        if(params.data.containsKey("merfish") && params.data.merfish && !params.data.containsKey("spatial_csv")) {
             if (!params.data.containsKey("n_tiles")){
                 glob_pattern ="${params.data.dataDir}/${params.data.image_prefix}*.${params.data.extension}" 
             }

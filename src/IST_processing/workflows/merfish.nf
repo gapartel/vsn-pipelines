@@ -118,5 +118,8 @@ workflow merfish {
         // Calculate assignment stats
         assignment_statistics_workflow(segmentation.out.concat_assigned_genes)
 
+        emit:
+             segmentation.out.count_matrix
+
 
 }

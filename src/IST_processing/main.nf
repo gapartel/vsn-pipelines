@@ -48,5 +48,7 @@ workflow merfish {
         data
     main:
         merfish_pipeline(data)
+    emit:
+        merfish_pipeline.out
 }
 

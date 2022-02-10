@@ -1736,33 +1736,47 @@ workflow iss {
             iss as ISS_PROCESSING_PIPELINE
     } from "./src/IST_processing/main.nf"
 
-    data = getDataChannel | ISS_PROCESSING_PIPELINE
+    main:
+        if (params.data.containsKey("spatial_csv")){
+            tmp_data = Channel.fromPath("${params.data.dataDir}/${params.data.round_prefix}*/${params.data.round_prefix}*_${params.data.channel_prefix}*.${params.data.extension}") 
+            ISS_PROCESSING_PIPELINE(tmp_data)
+        }
+        else {
+            data = getDataChannel | ISS_PROCESSING_PIPELINE
+        }
 
     emit:
         ISS_PROCESSING_PIPELINE.out
 }
 
 workflow merfish {
-
     include {
         merfish as MERFISH_PROCESSING_PIPELINE
     } from "./src/IST_processing/main.nf"
 
-    data = getDataChannel | MERFISH_PROCESSING_PIPELINE
+    main:
+        if (params.data.containsKey("spatial_csv")){
+            if (!params.data.containsKey("n_tiles")){
+                glob_pattern ="${params.data.dataDir}/${params.data.image_prefix}*.${params.data.extension}" 
+            }
+            else {
+                glob_pattern ="${params.data.dataDir}/${params.data.tile_prefix}*${params.data.image_prefix}*.${params.data.extension}" 
+            }
+            tmp_data = Channel.fromPath(glob_pattern) 
+            MERFISH_PROCESSING_PIPELINE(tmp_data)
+        }
+        else {
+            data = getDataChannel | MERFISH_PROCESSING_PIPELINE
+        }
 
     emit:
-        outs_dir =  "$params.global.outdir/outs" // Emit path to outs_dir to serve as input for downstream analysis
+        MERFISH_PROCESSING_PIPELINE.out
 }
 
 workflow IST_processing_single_sample {
     params.data.spatial_csv = "$params.global.outdir/outs"
-    if (params.data?.iss==true){
-        print("reached")
-        iss()
+    if (params.data?.merfish==true){
+        merfish()
     }
-    /* if (params.data?.merfish==true){ */
-    /*     outs_dir = merfish() */
-        /* params.data.spatial_csv = outs_dir */
-    /* } */ 
-    single_sample(iss.out)
+    single_sample(merfish.out)
 }
