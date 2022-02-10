@@ -245,24 +245,29 @@ workflow single_sample {
         PUBLISH as PUBLISH_SINGLE_SAMPLE_SCANPY;
     } from "./src/utils/workflows/utils" params(params)
 
-    getDataChannel | SINGLE_SAMPLE
+    take:
+        symbolic_take
 
-    if(params.utils?.publish) {
-        PUBLISH_SINGLE_SAMPLE_SCOPE(
-            SINGLE_SAMPLE.out.scopeloom,
-            "SINGLE_SAMPLE",
-            "loom",
-            null,
-            false
-        )
-        PUBLISH_SINGLE_SAMPLE_SCANPY(
-            SINGLE_SAMPLE.out.scanpyh5ad,
-            "SINGLE_SAMPLE",
-            "h5ad",
-            null,
-            false
-        )
-    }  
+    main:
+        print("testing", params.data.spatial_csv)
+        getDataChannel | SINGLE_SAMPLE
+
+        if(params.utils?.publish) {
+            PUBLISH_SINGLE_SAMPLE_SCOPE(
+                SINGLE_SAMPLE.out.scopeloom,
+                "SINGLE_SAMPLE",
+                "loom",
+                null,
+                false
+            )
+            PUBLISH_SINGLE_SAMPLE_SCANPY(
+                SINGLE_SAMPLE.out.scanpyh5ad,
+                "SINGLE_SAMPLE",
+                "h5ad",
+                null,
+                false
+            )
+        }  
 
 }
 
@@ -1726,15 +1731,17 @@ workflow single_sample_tangram {
         )
     }
 }
-
 workflow iss {
-    // Includes
     include {
             iss as ISS_PROCESSING_PIPELINE
     } from "./src/IST_processing/main.nf"
 
     data = getDataChannel | ISS_PROCESSING_PIPELINE
+
+    emit:
+        ISS_PROCESSING_PIPELINE.out
 }
+
 workflow merfish {
 
     include {
@@ -1742,4 +1749,20 @@ workflow merfish {
     } from "./src/IST_processing/main.nf"
 
     data = getDataChannel | MERFISH_PROCESSING_PIPELINE
+
+    emit:
+        outs_dir =  "$params.global.outdir/outs" // Emit path to outs_dir to serve as input for downstream analysis
+}
+
+workflow IST_processing_single_sample {
+    params.data.spatial_csv = "$params.global.outdir/outs"
+    if (params.data?.iss==true){
+        print("reached")
+        iss()
+    }
+    /* if (params.data?.merfish==true){ */
+    /*     outs_dir = merfish() */
+        /* params.data.spatial_csv = outs_dir */
+    /* } */ 
+    single_sample(iss.out)
 }

@@ -39,6 +39,8 @@ workflow iss {
         data
     main:
         iss_pipeline(data)
+    emit:
+        iss_pipeline.out
         
 }
 workflow merfish {

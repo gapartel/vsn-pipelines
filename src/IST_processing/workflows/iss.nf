@@ -113,5 +113,7 @@ workflow iss {
        /* clean_work_dir() */
        /* emit: */
        /*      outs_dir =  "$params.global.outdir/outs" // Emit path to outs_dir to serve as input for downstream analysis */
+       emit:
+            segmentation.out.count_matrix
     
 }
