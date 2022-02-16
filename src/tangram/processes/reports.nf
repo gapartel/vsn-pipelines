@@ -15,7 +15,7 @@ process TANGRAM__GENERATE_DUAL_INPUT_REPORT {
         def reportParams = new Yaml().dump(annotations_to_plot: params.tools.scanpy.report.annotations_to_plot)
 	container params.tools.tangram.container
 	
-        publishDir "${params.global.outdir}/notebooks/intermediate", mode: 'link', overwrite: true
+        publishDir "${params.global.outdir}/notebooks", mode: 'link', overwrite: true
     	label 'compute_resources__report'
 
         input:

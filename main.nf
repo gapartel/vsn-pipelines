@@ -1321,9 +1321,6 @@ workflow single_sample_spatialde {
         GET_SPATIAL_VARIABLE_GENES as SPATIALDE__GET_SPATIAL_VARIABLE_GENES;
     } from "./src/spatialde/workflows/spatialde" params(params)
     include {
-        SPATIALDE__ADD_SPATIAL_PATTERNS;
-    } from "./src/spatialde/processes/run_spatialde" params(params)
-    include {
     	SC__FILE_CONVERTER as SC__FILE_CONVERTER_SPATIAL;
     } from './src/utils/processes/utils' params(params)
     include {
@@ -1333,33 +1330,18 @@ workflow single_sample_spatialde {
         PUBLISH as PUBLISH_SINGLE_SAMPLE_SCOPE;
         PUBLISH as PUBLISH_SINGLE_SAMPLE_SCANPY;
     } from "./src/utils/workflows/utils" params(params)
-    include {
-        GENERATE_REPORT as GENERATE_REPORT_VARIABLE_GENES;
-	GENERATE_REPORT as GENERATE_REPORT_AEH;
-    } from "./src/spatialde/workflows/create_report" params(params)
     
+    getDataChannel | SC__FILE_CONVERTER_SPATIAL | SINGLE_SAMPLE 
 
-    getDataChannel | SC__FILE_CONVERTER_SPATIAL | SINGLE_SAMPLE
-    out = SPATIALDE__GET_SPATIAL_VARIABLE_GENES( SINGLE_SAMPLE.out.filtered_data )
+    input_spatialde = SINGLE_SAMPLE.out.filtered_data.join(SINGLE_SAMPLE.out.final_processed_data)
 
-    if(params.tools?.spatialde?.report_ipynb)
-    {
-	GENERATE_REPORT_VARIABLE_GENES("variable_genes", out, file(workflow.projectDir + params.tools.spatialde.report_ipynb) )
-    }
+    SPATIALDE__GET_SPATIAL_VARIABLE_GENES(input_spatialde)
 
-    if(params.tools?.spatialde?.run_aeh)
-    {
-	if(params.tools?.spatialde?.report_aeh_ipynb)
-    	{
-		GENERATE_REPORT_AEH("aeh", out, file(workflow.projectDir + params.tools.spatialde.report_aeh_ipynb))
-    	}
-	
-	scopeout = SPATIALDE__ADD_SPATIAL_PATTERNS(out, SINGLE_SAMPLE.out.final_processed_data )	
-    } else {
-        scopeout = SINGLE_SAMPLE.out.final_processed_data
-    }
+    out = SPATIALDE__GET_SPATIAL_VARIABLE_GENES.out.out
+    scopeout = SPATIALDE__GET_SPATIAL_VARIABLE_GENES.out.scopeout
+    report = SPATIALDE__GET_SPATIAL_VARIABLE_GENES.out.report
+    report_aeh = SPATIALDE__GET_SPATIAL_VARIABLE_GENES.out.report_aeh
     
-
     FILE_CONVERTER_TO_SCOPE(
 			scopeout,
 			'SINGLE_SAMPLE_SPATIALDE.final_output',
