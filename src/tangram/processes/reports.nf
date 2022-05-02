@@ -47,3 +47,25 @@ process TANGRAM__GENERATE_DUAL_INPUT_REPORT {
                         -p WORKFLOW_PARAMETERS '${params.misc.paramsAsJSON}'
                 """		
 }
+
+
+process TANGRAM__REPORT_TO_HTML {
+
+	container params.tools.scanpy.container
+	publishDir "${params.global.outdir}/notebooks", mode: 'link', overwrite: true
+	// copy final "merged_report" to notbooks root:
+	publishDir "${params.global.outdir}/notebooks", pattern: '*merged_report*', mode: 'link', overwrite: true
+    label 'compute_resources__report'
+
+	input:
+		tuple val(sampleId), path(ipynb)
+
+	output:
+		file("*.html")
+
+	script:
+		"""
+		jupyter nbconvert ${ipynb} --to html
+		"""
+
+}

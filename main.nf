@@ -1,3 +1,4 @@
+
 import static groovy.json.JsonOutput.*
 
 nextflow.enable.dsl=2
@@ -1700,6 +1701,140 @@ workflow single_sample_tangram {
             false
         )
 	PUBLISH_SINGLE_SAMPLE_MAPPED(
+	    TANGRAM__MAP_CELLTYPES.out.mapped,
+            "TANGRAM_CELLTYPES",
+            "h5ad",
+            null,
+            false
+        )
+    }
+}
+
+
+workflow tangram {
+    include {
+        PROJECT_CELLTYPES_SIMPLE as TANGRAM__MAP_CELLTYPES;
+    } from "./src/tangram/workflows/tangram" params(params)
+    include {
+    	TANGRAM__PREPARE_SCRNA as TANGRAM__PERPARE_REF;
+    } from "./src/tangram/processes/run_tangram.nf" params(params)
+    include {
+        FILE_CONVERTER as FILE_CONVERTER_TO_SCOPE;
+    } from "./src/utils/workflows/fileConverter" params(params)
+    include {
+        PUBLISH as PUBLISH_SINGLE_SAMPLE_SCOPE;
+	PUBLISH as PUBLISH_SINGLE_SAMPLE_MAPPED;
+	PUBLISH as PUBLISH_SINGLE_SAMPLE_MAPPING;
+    } from "./src/utils/workflows/utils" params(params)
+    include {
+    	SC__FILE_CONVERTER as SC__FILE_CONVERTER_SPATIAL;
+    } from './src/utils/processes/utils' params(params)
+    include {
+    	SC__FILE_CONVERTER as SC__FILE_CONVERTER_REF;
+    } from './src/utils/processes/utils' params(params)
+    include {
+        SQUIDPY_ANALYSIS;
+    } from './src/squidpy/workflows/squidpy_analysis' params(params)
+
+
+    data = getDataChannel | SC__FILE_CONVERTER_SPATIAL
+    ref_data = getReferenceDataChannel | SC__FILE_CONVERTER_REF | TANGRAM__PERPARE_REF
+
+    TANGRAM__MAP_CELLTYPES( data.combine(ref_data) )
+
+    FILE_CONVERTER_TO_SCOPE(
+			TANGRAM__MAP_CELLTYPES.out.mapped,
+			'SINGLE_SAMPLE_TANGRAM.final_output',
+			'mergeToSCopeLoomSimple',
+			null)
+
+    if (params.tools?.tangram?.squidpy_statistics==true){
+            SQUIDPY_ANALYSIS(TANGRAM__MAP_CELLTYPES.out.mapped)
+        }
+
+    if(params.utils?.publish) {
+        PUBLISH_SINGLE_SAMPLE_SCOPE(
+	    FILE_CONVERTER_TO_SCOPE.out,
+            "TANGRAM_CELLTYPES_scope",
+            "loom",
+            null,
+            false
+        )
+	PUBLISH_SINGLE_SAMPLE_MAPPING(
+	    TANGRAM__MAP_CELLTYPES.out.mapping,
+            "TANGRAM_MAPPING",
+            "h5ad",
+            null,
+            false
+        )
+	PUBLISH_SINGLE_SAMPLE_MAPPED(
+	    TANGRAM__MAP_CELLTYPES.out.mapped,
+            "TANGRAM_CELLTYPES",
+            "h5ad",
+            null,
+            false
+        )
+    }
+}
+
+workflow multi_sample_tangram {
+    include {
+        multi_sample as MULTI_SAMPLE;
+    } from "./workflows/multi_sample" params(params)
+    include {
+        PROJECT_CELLTYPES as TANGRAM__MAP_CELLTYPES;
+    } from "./src/tangram/workflows/tangram" params(params)
+    include {
+    	TANGRAM__PREPARE_SCRNA as TANGRAM__PERPARE_REF;
+    } from "./src/tangram/processes/run_tangram.nf" params(params)
+    include {
+        FILE_CONVERTER as FILE_CONVERTER_TO_SCOPE;
+    } from "./src/utils/workflows/fileConverter" params(params)
+    include {
+        PUBLISH as PUBLISH_MULTI_SAMPLE_SCOPE;
+	PUBLISH as PUBLISH_MULTI_SAMPLE_MAPPED;
+	PUBLISH as PUBLISH_MULTI_SAMPLE_MAPPING;
+    } from "./src/utils/workflows/utils" params(params)
+    include {
+    	SC__FILE_CONVERTER as SC__FILE_CONVERTER_REF;
+    } from './src/utils/processes/utils' params(params)
+    include {
+        SQUIDPY_ANALYSIS;
+    } from './src/squidpy/workflows/squidpy_analysis' params(params)
+
+    getDataChannel | MULTI_SAMPLE
+    ref_data = getReferenceDataChannel | SC__FILE_CONVERTER_REF | TANGRAM__PERPARE_REF
+
+    input_spatial = MULTI_SAMPLE.out.final_processed_data.combine(MULTI_SAMPLE.out.concatenated_data, by: 0)
+    
+    TANGRAM__MAP_CELLTYPES( input_spatial.combine(ref_data) )
+
+    FILE_CONVERTER_TO_SCOPE(
+			TANGRAM__MAP_CELLTYPES.out.mapped,
+			'MULTI_SAMPLE_TANGRAM.final_output',
+			'mergeToSCopeLoomSimple',
+			null)
+
+    if (params.tools?.tangram?.squidpy_statistics==true){
+            SQUIDPY_ANALYSIS(TANGRAM__MAP_CELLTYPES.out.mapped)
+        }
+
+    if(params.utils?.publish) {
+        PUBLISH_MULTI_SAMPLE_SCOPE(
+	    FILE_CONVERTER_TO_SCOPE.out,
+            "TANGRAM_CELLTYPES_scope",
+            "loom",
+            null,
+            false
+        )
+	PUBLISH_MULTI_SAMPLE_MAPPING(
+	    TANGRAM__MAP_CELLTYPES.out.mapping,
+            "TANGRAM_MAPPING",
+            "h5ad",
+            null,
+            false
+        )
+	PUBLISH_MULTI_SAMPLE_MAPPED(
 	    TANGRAM__MAP_CELLTYPES.out.mapped,
             "TANGRAM_CELLTYPES",
             "h5ad",
