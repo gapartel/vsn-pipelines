@@ -3,6 +3,7 @@ import argparse
 import os
 import scanpy as sc
 import squidpy as sq
+import anndata as ad
 
 parser = argparse.ArgumentParser(description='''Compute spatial neighbors graph.''')
 
