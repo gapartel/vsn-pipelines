@@ -4,9 +4,9 @@ nextflow.enable.dsl=2
 //  process imports:
 
 include {
-    SC__SCANPY__GENERATE_REPORT as SPATIALDE__GENERATE_REPORT;
-    SC__SCANPY__REPORT_TO_HTML as SPATIALDE__REPORT_TO_HTML; 
-} from '../../scanpy/processes/reports.nf' params(params)
+    SPATIALDE__SCANPY__GENERATE_REPORT as SPATIALDE__GENERATE_REPORT;
+    SPATIALDE__SCANPY__REPORT_TO_HTML as SPATIALDE__REPORT_TO_HTML; 
+} from '../processes/reports.nf' params(params)
 
 
 

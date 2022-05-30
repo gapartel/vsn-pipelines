@@ -87,6 +87,28 @@ process TANGRAM__PREPARE_SPATIAL {
       	"""
 }
 
+process TANGRAM__PREPARE_SPATIAL_SIMPLE {
+
+    container params.tools.tangram.container
+    publishDir "${params.global.outdir}/data/intermediate", mode: 'symlink', overwrite: true
+    label 'compute_resources__cpu'
+
+    input:
+        tuple val(sampleId), path(f)
+
+    output:
+        tuple val(sampleId), path("${sampleId}.TANGRAM__SPATIAL.${processParams.off}")
+
+    script:
+	def sampleParams = params.parseConfig(sampleId, params.global, params.tools.tangram)
+      	    processParams = sampleParams.local
+      	"""
+     	${binDir}/prepare_spatial_tangram_simple.py \
+		${f} \
+      		${sampleId}.TANGRAM__SPATIAL.${processParams.off}
+      	"""
+}
+
 
 process TANGRAM__COMPUTE_MAPPING {
     

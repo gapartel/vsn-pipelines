@@ -15,7 +15,7 @@ process TANGRAM__GENERATE_DUAL_INPUT_REPORT {
         def reportParams = new Yaml().dump(annotations_to_plot: params.tools.scanpy.report.annotations_to_plot)
 	container params.tools.tangram.container
 	
-        publishDir "${params.global.outdir}/notebooks/intermediate", mode: 'link', overwrite: true
+        publishDir "${params.global.outdir}/notebooks", mode: 'link', overwrite: true
     	label 'compute_resources__report'
 
         input:
@@ -46,4 +46,26 @@ process TANGRAM__GENERATE_DUAL_INPUT_REPORT {
                         -p WORKFLOW_MANIFEST '${params.misc.manifestAsJSON}' \
                         -p WORKFLOW_PARAMETERS '${params.misc.paramsAsJSON}'
                 """		
+}
+
+
+process TANGRAM__REPORT_TO_HTML {
+
+	container params.tools.scanpy.container
+	publishDir "${params.global.outdir}/notebooks", mode: 'link', overwrite: true
+	// copy final "merged_report" to notbooks root:
+	publishDir "${params.global.outdir}/notebooks", pattern: '*merged_report*', mode: 'link', overwrite: true
+    label 'compute_resources__report'
+
+	input:
+		tuple val(sampleId), path(ipynb)
+
+	output:
+		file("*.html")
+
+	script:
+		"""
+		jupyter nbconvert ${ipynb} --to html
+		"""
+
 }
