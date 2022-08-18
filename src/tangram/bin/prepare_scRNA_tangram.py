@@ -8,6 +8,7 @@ import warnings
 import scanpy as sc
 import pandas as pd
 import numpy as np
+import random
 
 ### options
 parser = argparse.ArgumentParser(description='')
@@ -58,6 +59,22 @@ parser.add_argument(
     help="Method for computing 'rank_genes_groups' in reference data if not present (default: '%(default)s')"
 )
 
+parser.add_argument(
+    '--max-cells-cluster',
+    dest='maxcells',
+    type=int,
+    default=None,
+    help="Downsample annotation cluster to max. number of cells (default: '%(default)s')"
+)
+
+parser.add_argument(
+    '--seed',
+    dest='seed',
+    type=int,
+    default=None,
+    help="Initialize RNG to seed (default: '%(default)s')"
+)
+
 
 args = parser.parse_args()
 
@@ -74,6 +91,11 @@ try:
     adata_ref = sc.read_h5ad(filename=FILE_PATH_IN.name)
 except IOError:
     raise Exception("VSN ERROR: Can only handle .h5ad files.")
+
+
+# initialize RNG if specified
+if args.seed:
+    random.seed(args.seed)
 
 # remove cells and genes with 0 counts everywhere in reference
 sc.pp.filter_cells(adata_ref, min_genes=1)
@@ -108,6 +130,26 @@ if args.method == 'marker_genes':
             # copy back raw data
             adata_ref.X = rawX.copy()
 
+# downsample anndata to max cells per cluster if option set
+if args.maxcells:
+    
+    # get random subset
+    print("Downsampling to max. " + str(args.maxcells) + " cells per cluster...")
+    idx_subset = []
+    
+    for clusname in np.unique(adata_ref.obs[args.anno]):
+        temp_idx = list(adata_ref.obs[adata_ref.obs[args.anno] == clusname].index)
+        if len(temp_idx) > args.maxcells:
+            rand_idx = random.sample(temp_idx, args.maxcells)
+            idx_subset = idx_subset + rand_idx
+        else:
+            idx_subset = idx_subset + temp_idx
+            
+    # keep original order of barcodes when subsetting anndata
+    idx_subset = [ idx for idx in adata_ref.obs.index if idx in idx_subset ] 
+    adata_ref = adata_ref[idx_subset].copy()
+    print("Done.")
+            
 # to prevent pot. encoding issue substitute tuple entries with strings
 for obskey in adata_ref.obs.keys():
     if isinstance(adata_ref.obs[obskey][0], tuple):

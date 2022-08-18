@@ -57,6 +57,8 @@ process TANGRAM__PREPARE_SCRNA {
 		${processParams?.gene_selection_method ? "-m " + processParams.gene_selection_method  : ""} \
 		${processParams?.rank_gene_method ? "--rank-gene-method " + processParams.rank_gene_method  : ""} \
 		${processParams?.normalize ? "--normalize " + processParams.normalize  : ""} \
+		${processParams?.max_cells ? "--max-cells-cluster " + processParams.max_cells  : ""} \
+		${params.global.seed ? "--seed " + params.global.seed : ""} \
 		${f} \
       		${sampleId}.TANGRAM__SCRNA.${processParams.off}
       	"""
@@ -136,6 +138,7 @@ process TANGRAM__COMPUTE_MAPPING {
 		${processParams?.qvalue ? "-q " + processParams.qvalue  : ""} \
 		${processParams?.mapping_mode ? "--mode " + processParams.mapping_mode  : ""} \
 		${processParams?.gene_list ? "--list_genes " + processParams.gene_list  : ""} \
+		${params.global.seed ? "--seed " + params.global.seed : ""} \
 		${f} \
       		${sampleId}.TANGRAM__MAPPING.${processParams.off}
       	"""

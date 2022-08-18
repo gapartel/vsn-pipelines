@@ -10,6 +10,7 @@ import tangram as tg
 import scanpy as sc
 import pandas as pd
 import numpy as np
+import random
 
 ### functions
 
@@ -126,6 +127,13 @@ parser.add_argument(
     help="Mode for cell type mapping (default: '%(default)s')"
 )
 
+parser.add_argument(
+    '--seed',
+    dest='seed',
+    type=int,
+    default=None,
+    help="Initialize RNG to seed (default: '%(default)s')"
+)
 
 args = parser.parse_args()
 
@@ -150,7 +158,10 @@ try:
 except IOError:
     raise Exception("VSN ERROR: Can only handle .h5ad files for refernce single cell.")
 
-    
+# initialize RNG if specified
+if args.seed:
+    random.seed(args.seed)
+
 # get marker genes list
 gene_list = []
 
