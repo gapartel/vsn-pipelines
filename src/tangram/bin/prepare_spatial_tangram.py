@@ -59,7 +59,7 @@ except IOError:
 if 'X_spatial' in adata_spatial.obsm:
     adata_spatial.obs['x'] = np.asarray(adata_spatial.obsm['X_spatial'][:,0])
     adata_spatial.obs['y'] = np.asarray(adata_spatial.obsm['X_spatial'][:,1])
-elif 'spatial' in adata.obsm:
+elif 'spatial' in adata_spatial.obsm:
     adata_spatial.obs['x'] = np.asarray(adata_spatial.obsm['spatial'][:,0])
     adata_spatial.obs['y'] = np.asarray(adata_spatial.obsm['spatial'][:,1])
     adata_spatial.obsm['X_spatial'] = np.float32(adata_spatial.obsm['spatial'])[:,:2]
