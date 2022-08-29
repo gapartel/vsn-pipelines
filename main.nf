@@ -1312,7 +1312,7 @@ workflow filter_and_annotate_and_clean {
 
 // --- SPATIAL WORKFLOWS ---
 
-// run single_sample and spatialDE:
+// run single_sample and spatialDE
 workflow single_sample_spatialde {
 
     include {
@@ -1367,6 +1367,114 @@ workflow single_sample_spatialde {
         )
     }
 }
+
+// run multi_sample and spatialDE
+workflow multi_sample_spatialde {
+
+    include {
+        multi_sample as MULTI_SAMPLE;
+    } from "./workflows/multi_sample" params(params)
+    include {
+        GET_SPATIAL_VARIABLE_GENES as SPATIALDE__GET_SPATIAL_VARIABLE_GENES;
+    } from "./src/spatialde/workflows/spatialde" params(params)
+    include {
+    	SC__FILE_CONVERTER as SC__FILE_CONVERTER_SPATIAL;
+    } from './src/utils/processes/utils' params(params)
+    include {
+        FILE_CONVERTER as FILE_CONVERTER_TO_SCOPE;
+    } from "./src/utils/workflows/fileConverter" params(params)
+    include {
+        PUBLISH as PUBLISH_SINGLE_SAMPLE_SCOPE;
+        PUBLISH as PUBLISH_SINGLE_SAMPLE_SCANPY;
+    } from "./src/utils/workflows/utils" params(params)
+    
+    getDataChannel | MULTI_SAMPLE
+    input_spatialde = MULTI_SAMPLE.out.concatenated_data.join(MULTI_SAMPLE.out.final_processed_data)
+    
+    SPATIALDE__GET_SPATIAL_VARIABLE_GENES(input_spatialde)
+
+    out = SPATIALDE__GET_SPATIAL_VARIABLE_GENES.out.out
+    scopeout = SPATIALDE__GET_SPATIAL_VARIABLE_GENES.out.scopeout
+    report = SPATIALDE__GET_SPATIAL_VARIABLE_GENES.out.report
+    report_aeh = SPATIALDE__GET_SPATIAL_VARIABLE_GENES.out.report_aeh
+    
+    FILE_CONVERTER_TO_SCOPE(
+			scopeout,
+			'MULTI_SAMPLE_SPATIALDE.final_output',
+			'mergeToSCopeLoom',			
+			MULTI_SAMPLE.out.concatenated_data)
+    
+    if(params.utils?.publish) {
+	PUBLISH_SINGLE_SAMPLE_SCANPY(
+            out,
+            "SPATIALDE__SPATIAL_VARIABLE_GENES",
+            "h5ad",
+            null,
+            false
+        )
+
+	PUBLISH_SINGLE_SAMPLE_SCOPE(
+	    FILE_CONVERTER_TO_SCOPE.out,
+            "SPATIALDE_scope",
+            "loom",
+            null,
+            false
+        )
+    }
+}
+
+
+
+// run spatialDE starting from filtered raw spatial object h5ad
+// currently does not work from loom as clusterings are not properly transferred to object 
+workflow spatialde {
+
+    include {
+        GET_SPATIAL_VARIABLE_GENES_SIMPLE as SPATIALDE__GET_SPATIAL_VARIABLE_GENES;
+    } from "./src/spatialde/workflows/spatialde" params(params)
+    include {
+    	SC__FILE_CONVERTER as SC__FILE_CONVERTER_SPATIAL;
+    } from './src/utils/processes/utils' params(params)
+    include {
+        FILE_CONVERTER as FILE_CONVERTER_TO_SCOPE;
+    } from "./src/utils/workflows/fileConverter" params(params)
+    include {
+        PUBLISH as PUBLISH_SINGLE_SAMPLE_SCOPE;
+        PUBLISH as PUBLISH_SINGLE_SAMPLE_SCANPY;
+    } from "./src/utils/workflows/utils" params(params)
+    
+    getDataChannel | SC__FILE_CONVERTER_SPATIAL | SPATIALDE__GET_SPATIAL_VARIABLE_GENES
+
+    out = SPATIALDE__GET_SPATIAL_VARIABLE_GENES.out.out
+    scopeout = SPATIALDE__GET_SPATIAL_VARIABLE_GENES.out.scopeout
+    report = SPATIALDE__GET_SPATIAL_VARIABLE_GENES.out.report
+    report_aeh = SPATIALDE__GET_SPATIAL_VARIABLE_GENES.out.report_aeh
+    
+    FILE_CONVERTER_TO_SCOPE(
+			scopeout,
+			'SPATIALDE.final_output',
+			'mergeToSCopeLoomSimple',			
+			null)
+    
+    if(params.utils?.publish) {
+	PUBLISH_SINGLE_SAMPLE_SCANPY(
+            out,
+            "SPATIALDE__SPATIAL_VARIABLE_GENES",
+            "h5ad",
+            null,
+            false
+        )
+
+	PUBLISH_SINGLE_SAMPLE_SCOPE(
+	    FILE_CONVERTER_TO_SCOPE.out,
+            "SPATIALDE_scope",
+            "loom",
+            null,
+            false
+        )
+    }
+}
+
 
 workflow single_sample_spage {
     include {

@@ -127,6 +127,16 @@ parser.add_argument(
     help="Output format which the file should be converted to. Choose one of: {}.".format(', '.join(out_formats))
 )
 
+parser.add_argument(
+    "--scale-spatial",
+    action="store",  # optional because action defaults to "store"
+    dest="spatial_scale",
+    type=float,
+    default=20,
+    help="Real number to scale 'X_spatial' to for SCope. Set to 0 for no scaling."
+)
+
+
 args = parser.parse_args()
 
 # Define the arguments properly
@@ -363,8 +373,11 @@ elif INPUT_FORMAT == 'spatial_csv' and OUTPUT_FORMAT == 'h5ad':
     # center data for SCope
     avg_coords = adata.obsm['X_spatial'].sum(axis=0)/adata.obsm['X_spatial'].shape[0]
     adata.obsm['X_spatial'] = adata.obsm['X_spatial'] - avg_coords
-    # scale data for SCope such that X axis is between [-10,10]
-    scfactor = 20/(np.max(adata.obsm['X_spatial'][:,0])-np.min(adata.obsm['X_spatial'][:,0]))
+    # scale data for SCope, default of 20 such that X axis is between [-10,10]
+    if args.spatial_scale > 0:
+        scfactor = args.spatial_scale / (np.max(adata.obsm['X_spatial'][:,0])-np.min(adata.obsm['X_spatial'][:,0]))
+    else:
+        scfactor = 1
     adata.obsm['X_spatial'] = adata.obsm['X_spatial'] * scfactor
 
     # Convert to sparse matrix
@@ -427,8 +440,11 @@ elif INPUT_FORMAT == '10x_spaceranger_visium' and OUTPUT_FORMAT == 'h5ad':
     # center data for SCope
     avg_coords = adata.obsm['X_spatial'].sum(axis=0)/adata.obsm['X_spatial'].shape[0]
     adata.obsm['X_spatial'] = adata.obsm['X_spatial'] - avg_coords
-    # scale data for SCope such that X axis is between [-10,10]
-    scfactor = 20/(np.max(adata.obsm['X_spatial'][:,0])-np.min(adata.obsm['X_spatial'][:,0]))
+    # scale data for SCope, default of 20 such that X axis is between [-10,10]
+    if args.spatial_scale > 0:
+        scfactor = args.spatial_scale / (np.max(adata.obsm['X_spatial'][:,0])-np.min(adata.obsm['X_spatial'][:,0]))
+    else:
+        scfactor = 1
     adata.obsm['X_spatial'] = adata.obsm['X_spatial'] * scfactor
     
     print("Writing 10x data to h5ad...")

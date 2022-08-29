@@ -106,6 +106,14 @@ except IOError:
 # read anndata
 adata = sc.read_h5ad(filename=FILE_PATH_IN.name)
 
+# to prevent pot. encoding issue substitute tuple entries with strings
+for obskey in adata.obs.keys():
+    if isinstance(adata.obs[obskey][0], tuple):
+        adata.obs[obskey] = [ str(tupl) for tupl in adata.obs[obskey] ]
+for varkey in adata.var.keys():
+    if isinstance(adata.var[varkey][0], tuple):
+        adata.var[varkey] = [ str(tupl) for tupl in adata.var[varkey] ]
+
 # filter genes
 if min_cells > 0:
     sc.pp.filter_genes(adata, min_cells=min_cells)
@@ -115,7 +123,19 @@ if isinstance(adata.X, scipy.sparse.csr.csr_matrix):
     counts = pd.DataFrame(adata.X.todense(), columns=adata.var_names, index=adata.obs_names)
 else:
     counts = pd.DataFrame(adata.X, columns=adata.var_names, index=adata.obs_names)
-coord = pd.DataFrame(adata.obsm['spatial'], columns=['x_coord', 'y_coord'], index=adata.obs_names)
+
+# get spatial coordinates
+if 'X_spatial' in adata.obsm:
+    coord = pd.DataFrame(adata.obsm['X_spatial'], columns=['x_coord', 'y_coord'], index=adata.obs_names)
+elif 'spatial' in adata.obsm:
+    coord = pd.DataFrame(adata.obsm['spatial'], columns=['x_coord', 'y_coord'], index=adata.obs_names)
+    adata.obsm['X_spatial'] = np.float32(adata.obsm['spatial'])[:,:2]
+elif 'x' in adata.obs and 'y' in adata.obs:
+    coord = pd.DataFrame({'x_coord': adata.obs['x'], 'y_coord': adata.obs['y']}, index=adata.obs_names)
+    adata.obsm['X_spatial'] = np.float32(coord)
+else:
+    raise Exception("VSN ERROR: No spatial coordinate entry found in anndata.")
+
 sample_info = adata.obs
 
 

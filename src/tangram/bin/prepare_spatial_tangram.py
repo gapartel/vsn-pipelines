@@ -44,7 +44,7 @@ FILE_PATH_OUT_BASENAME = os.path.splitext(args.output.name)[0]
 # I/O
 # Expects h5ad file
 try:
-    adata = sc.read_h5ad(filename=FILE_PATH_IN.name)
+    adata_spatial = sc.read_h5ad(filename=FILE_PATH_IN.name)
 except IOError:
     raise Exception("VSN ERROR: Can only handle .h5ad files.")
 
@@ -54,12 +54,20 @@ try:
 except IOError:
     raise Exception("VSN ERROR: Can only handle .h5ad files.")
 
-
 # tangram specific modification
 # add coordinates as obs.x and obs.y
-adata_spatial = adata.copy()
-adata_spatial.obs['x'] = np.asarray(adata.obsm['spatial'][:,0])
-adata_spatial.obs['y'] = np.asarray(adata.obsm['spatial'][:,1])
+if 'X_spatial' in adata_spatial.obsm:
+    adata_spatial.obs['x'] = np.asarray(adata_spatial.obsm['X_spatial'][:,0])
+    adata_spatial.obs['y'] = np.asarray(adata_spatial.obsm['X_spatial'][:,1])
+elif 'spatial' in adata.obsm:
+    adata_spatial.obs['x'] = np.asarray(adata_spatial.obsm['spatial'][:,0])
+    adata_spatial.obs['y'] = np.asarray(adata_spatial.obsm['spatial'][:,1])
+    adata_spatial.obsm['X_spatial'] = np.float32(adata_spatial.obsm['spatial'])[:,:2]
+elif 'x' in adata_spatial.obs and 'y' in adata_spatial.obs:
+    coord = pd.DataFrame({'x_coord': adata_spatial.obs['x'], 'y_coord': adata_spatial.obs['y']}, index=adata_spatial.obs_names)
+    adata_spatial.obsm['X_spatial'] = np.float32(coord)
+else:
+    raise Exception("VSN ERROR: missing spatial coordinates in obsm or obs.")
 
 # add raw spatial data
 adata_spatial.X = adata_raw[:, adata_spatial.var.index].X.copy()

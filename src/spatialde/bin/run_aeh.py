@@ -89,8 +89,18 @@ if isinstance(adata.X, scipy.sparse.csr.csr_matrix):
     counts = pd.DataFrame(adata.X.todense(), columns=adata.var_names, index=adata.obs_names)
 else:
     counts = pd.DataFrame(adata.X, columns=adata.var_names, index=adata.obs_names)
+
 # get spatial coordinates
-coords = pd.DataFrame(adata.obsm['spatial'], columns=['x_coord', 'y_coord'], index=adata.obs_names)
+if 'X_spatial' in adata.obsm:
+    coords = pd.DataFrame(adata.obsm['X_spatial'], columns=['x_coord', 'y_coord'], index=adata.obs_names)
+elif 'spatial' in adata.obsm:
+    coords = pd.DataFrame(adata.obsm['spatial'], columns=['x_coord', 'y_coord'], index=adata.obs_names)
+    adata.obsm['X_spatial'] = np.float32(adata.obsm['spatial'])[:,:2]
+elif 'x' in adata.obs and 'y' in adata.obs:
+    coords = pd.DataFrame({'x_coord': adata.obs['x'], 'y_coord': adata.obs['y']}, index=adata.obs_names)
+    adata.obsm['X_spatial'] = np.float32(coord)
+else:
+    raise Exception("VSN ERROR: No spatial coordinate entry found in anndata.")
 
 # get significant genes
 signif_res = adata.uns['spatialDE'][adata.uns['spatialDE'].is_signif]

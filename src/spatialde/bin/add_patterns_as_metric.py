@@ -53,6 +53,13 @@ try:
 except IOError:
     raise Exception("VSN ERROR: Can only handle .h5ad files.")
 
+# to prevent pot. encoding issue substitute tuple entries with strings
+for obskey in adata_final.obs.keys():
+    if isinstance(adata_final.obs[obskey][0], tuple):
+        adata_final.obs[obskey] = [ str(tupl) for tupl in adata_final.obs[obskey] ]
+for varkey in adata_final.var.keys():
+    if isinstance(adata_final.var[varkey][0], tuple):
+        adata_final.var[varkey] = [ str(tupl) for tupl in adata_final.var[varkey] ]
 
 # add patterns as obs variables to used as SCope metric
 for pattern in adata.uns['spatialDE_AEH_patterns'].keys():

@@ -44,8 +44,18 @@ except IOError:
 
 # tangram specific modification
 # add coordinates as obs.x and obs.y
-adata_spatial.obs['x'] = np.asarray(adata_spatial.obsm['spatial'][:,0])
-adata_spatial.obs['y'] = np.asarray(adata_spatial.obsm['spatial'][:,1])
+if 'X_spatial' in adata_spatial.obsm:
+    adata_spatial.obs['x'] = np.asarray(adata_spatial.obsm['X_spatial'][:,0])
+    adata_spatial.obs['y'] = np.asarray(adata_spatial.obsm['X_spatial'][:,1])
+elif 'spatial' in adata.obsm:
+    adata_spatial.obs['x'] = np.asarray(adata_spatial.obsm['spatial'][:,0])
+    adata_spatial.obs['y'] = np.asarray(adata_spatial.obsm['spatial'][:,1])
+    adata_spatial.obsm['X_spatial'] = np.float32(adata_spatial.obsm['spatial'])[:,:2]
+elif 'x' in adata_spatial.obs and 'y' in adata_spatial.obs:
+    coord = pd.DataFrame({'x_coord': adata_spatial.obs['x'], 'y_coord': adata_spatial.obs['y']}, index=adata_spatial.obs_names)
+    adata_spatial.obsm['X_spatial'] = np.float32(coord)
+else:
+    raise Exception("VSN ERROR: missing spatial coordinates in obsm or obs.")
 
 # write output
 adata_spatial.write_h5ad("{}.h5ad".format(FILE_PATH_OUT_BASENAME))

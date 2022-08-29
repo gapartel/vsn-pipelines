@@ -110,6 +110,7 @@ def runPythonConverter = {
             ${processParams?.makeVarIndexUnique ? '--make-var-index-unique '+ processParams.makeVarIndexUnique : ''} \
             ${processParams?.tagCellWithSampleId ? '--tag-cell-with-sample-id '+ processParams.tagCellWithSampleId : ''} \
             ${processParams?.remove10xGEMWell ? '--remove-10x-gem-well '+ processParams.remove10xGEMWell : ''} \
+	    ${processParams?.scaleSpatial ? '--scale-spatial '+ processParams.scaleSpatial : ''} \
             ${processParams?.useRaw ? '--use-raw '+ processParams.useRaw : ''} \
             --input-format $inputDataType \
             --output-format $outputDataType \
@@ -359,6 +360,7 @@ process SC__FILE_CONCATENATOR {
         """
         ${binDir}/sc_file_concatenator.py \
             --file-format $processParams.off \
+	    ${processParams?.scaleSpatial ? '--scale-spatial '+ processParams.scaleSpatial : ''} \
             ${(processParams.containsKey('join')) ? '--join ' + processParams.join : ''} \
             --output "${params.global.project_name}.SC__FILE_CONCATENATOR.${processParams.off}" *
         """
