@@ -9,7 +9,7 @@ import numpy as np
 import loompy as lp
 import anndata as ann
 from scipy.sparse import csr_matrix
-
+import json
 
 def str2bool(v):
     if isinstance(v, bool):
@@ -459,10 +459,11 @@ elif INPUT_FORMAT == 'loom' and OUTPUT_FORMAT == 'h5ad':
     col_attrs = {k: v for k, v in loom.ca.items()}
     row_attrs = {k: v for k, v in loom.ra.items()}
     global_attrs = {k: v for k, v in loom.attrs.items()}
+    dict_metadata = json.loads(loom.__dict__['attrs']['MetaData'])
 
     # close loom
     loom.close()
-    
+
     # create anndata
     adata = ann.AnnData(X=np.float32(ex_mtx.to_numpy()))
     adata.obs_names = ex_mtx.index
@@ -470,14 +471,95 @@ elif INPUT_FORMAT == 'loom' and OUTPUT_FORMAT == 'h5ad':
 
     # add column attributes
     for key, value in row_attrs.items():
-        adata.var[key] = value        
+        if not isinstance(value[0], np.void):
+            adata.var[key] = value        
     # add column attributes
     for key, value in col_attrs.items():
-        adata.obs[key] = value
+        if not isinstance(value[0], np.void):
+            adata.obs[key] = value
     # add column attributes
     for key, value in global_attrs.items():
         adata.uns[key] = value
+    
+    # add clustering
+    if 'clusterings' in dict_metadata:
+        clustering_algorithm = dict_metadata['clusterings'][0]['group']
+        clustering_resolution = re.search(r'[0-9]+\.?[0-9]?$', dict_metadata['clusterings'][0]['name'])[0]
+        cluster_marker_method = re.search(r'Average log fold change from (.*)', dict_metadata['clusterings'][0]['clusterMarkerMetrics'][0]['description'])[1]
         
+        adata.uns["rank_genes_groups"] = {}
+        adata.uns["rank_genes_groups"]["params"] = {}
+        adata.uns["rank_genes_groups"]["params"]["groupby"] = clustering_algorithm
+        adata.uns[clustering_algorithm] = {}
+        adata.uns[clustering_algorithm]["params"] = {}
+        adata.uns[clustering_algorithm]["params"]["resolution"] = clustering_resolution
+        adata.uns["rank_genes_groups"]["params"]["method"] = cluster_marker_method
+        
+        # add obs entry for clustering
+        adata.obs[clustering_algorithm] = [ clus[0] for clus in col_attrs['Clusterings'] ]
+        
+        # add marker genes
+        # init empty dict
+        adata.uns["rank_genes_groups"]['names'] = {}
+        adata.uns["rank_genes_groups"]['pvals_adj'] = {}
+        adata.uns["rank_genes_groups"]['logfoldchanges'] = {}
+        
+        for clusid in range(len(np.unique(adata.obs[clustering_algorithm]))):
+            adata.uns["rank_genes_groups"]['names'][clusid] = []
+            adata.uns["rank_genes_groups"]['pvals_adj'][clusid] = []
+            adata.uns["rank_genes_groups"]['logfoldchanges'][clusid] = []
+            
+        # get marker genes
+        for i in range(len(row_attrs['ClusterMarkers_0'])):
+            gene = row_attrs['Gene'][i]
+            for idx, e in enumerate(row_attrs['ClusterMarkers_0'][i]):
+                if e != 0:
+                    pval = row_attrs['ClusterMarkers_0_pval'][i][idx]
+                    logfc = row_attrs['ClusterMarkers_0_avg_logFC'][i][idx]
+                        
+                    adata.uns["rank_genes_groups"]['names'][idx].append(gene)
+                    adata.uns["rank_genes_groups"]['pvals_adj'][idx].append(pval)
+                    adata.uns["rank_genes_groups"]['logfoldchanges'][idx].append(logfc)
+    
+    # add embeddings
+    map_embedding_names = {
+        'HVG UMAP': 'X_umap',
+        'HVG t-SNE': 'X_tsne',
+        'HVG PC1/PC2': 'X_pca',
+        'Spatial': 'X_spatial'
+        }
+
+    if 'embeddings' in dict_metadata:
+
+        # initialize embeddings        
+        dict_embed_x = {}
+        dict_embed_y = {}
+        n_spots = len(col_attrs['Embeddings_X'])
+        veczero = np.zeros(n_spots)
+        embeds = [ embed['name'] for embed in dict_metadata['embeddings'] ]
+        n_embeds = len(embeds)
+        
+        for embed in embeds:
+            dict_embed_x[embed] = veczero.copy()
+            dict_embed_y[embed] = veczero.copy()
+            
+        for i in range(n_spots):
+            for j in range(n_embeds):
+                dict_embed_x[embeds[j]][i] = col_attrs['Embeddings_X'][i][j]
+                dict_embed_y[embeds[j]][i] = col_attrs['Embeddings_Y'][i][j]
+        
+        for embed in embeds:
+            if embed in map_embedding_names:
+                name_embed = map_embedding_names[embed]
+            else:
+                name_embed = "X_" + embed
+            
+            x = dict_embed_x[embed]
+            y = dict_embed_y[embed]
+            
+            adata.obsm[name_embed] = np.float32(np.vstack((x, y)).T)
+    
+    
     # Add additional information
     adata = update_obs(adata=adata, args=args)
     # Add/update additional information to features (var)
