@@ -5,11 +5,7 @@
 import argparse
 import os
 import warnings
-import SpatialDE
-import scanpy as sc
-import pandas as pd
-import numpy as np
-import scipy
+
 
 # options
 parser = argparse.ArgumentParser(description='')
@@ -60,6 +56,14 @@ parser.add_argument(
     help="Fraction to add to estimated l"
 )
 
+parser.add_argument(
+    "--ncpu",
+    type=int,
+    default=0,
+    dest='ncpu',
+    help='Number of CPUs used. 0: does not set environment limit for CPUs'
+)
+
 args = parser.parse_args()
 
 # Define the arguments properly
@@ -70,6 +74,18 @@ lval = args.l_value
 cval = args.num_patterns
 methodl = args.method_l
 adjl = args.adj_l
+ncpu = args.ncpu
+
+# env limits for CPUs if specied before importing libs
+if ncpu > 0:
+    for envkey in ['MKL_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'BLIS_NUM_THREADS']:
+        os.environ[envkey] = str(ncpu)
+        
+import scanpy as sc
+import pandas as pd
+import SpatialDE
+import numpy as np
+import scipy
 
 
 # I/O
@@ -81,6 +97,7 @@ except IOError:
 
 
 ### main
+        
 # read anndata
 adata = sc.read_h5ad(filename=FILE_PATH_IN.name)
 

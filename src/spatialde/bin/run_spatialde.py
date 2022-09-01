@@ -5,13 +5,6 @@
 import argparse
 import os
 import warnings
-import SpatialDE
-import NaiveDE
-import scanpy as sc
-import pandas as pd
-import numpy as np
-import statsmodels.stats.multitest as multitest
-import scipy
 
 #########################################################
 # helper function: test whether spatialDE q-value and fraction of variance (fsv) are satisfying specified trhesholds
@@ -80,6 +73,15 @@ parser.add_argument(
     help='Normalize counts using NaiveDE and regress out n_counts.'
 )
 
+parser.add_argument(
+    "--ncpu",
+    type=int,
+    default=0,
+    dest='ncpu',
+    help='Number of CPUs used. 0: does not set environment limit for CPUs'
+)
+
+
 
 
 args = parser.parse_args()
@@ -93,6 +95,21 @@ min_fsv = args.min_fsv
 thr_qval = args.thr_qval
 method_qval = args.method_qval
 run_naivede = args.run_naivede
+ncpu = args.ncpu
+
+# env limits for CPUs if specied before importing libs
+if ncpu > 0:
+    for envkey in ['MKL_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'BLIS_NUM_THREADS']:
+        os.environ[envkey] = str(ncpu)
+
+import SpatialDE
+import NaiveDE
+import scanpy as sc
+import pandas as pd
+import numpy as np
+import statsmodels.stats.multitest as multitest
+import scipy
+
 
 # I/O
 # Expects h5ad file
@@ -103,6 +120,7 @@ except IOError:
 
 
 ### main
+
 # read anndata
 adata = sc.read_h5ad(filename=FILE_PATH_IN.name)
 

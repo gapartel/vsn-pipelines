@@ -25,7 +25,8 @@ process SPATIALDE__VARIABLE_GENES {
 		${processParams?.thr_qval ? "--thr-qval " + processParams.thr_qval  : ""} \
 		${processParams?.method_pval_correction ? "--method-pval-correction " + processParams.method_pval_correction  : ""} \
 		${processParams?.min_fsv ? "--min-fsv " + processParams.min_fsv  : ""} \
-		${processParams?.normalize_naivede ? "--normalize-naivede " + processParams.normalize_naivede  : ""}
+		${processParams?.normalize_naivede ? "--normalize-naivede " + processParams.normalize_naivede  : ""} \
+		--ncpu ${task.cpus}
       	"""
 }
 
@@ -51,7 +52,8 @@ process SPATIALDE__SPATIAL_PATTERNS {
 		${processParams?.c ? "-c " + processParams.c  : ""} \
 		${processParams?.l ? "-l " + processParams.l  : ""} \
 		${processParams?.estimate_l ? "--estimate-l " + processParams.estimate_l  : ""} \
-		${processParams?.adjust_l ? "--adjust-l " + processParams.adjust_l  : ""}
+		${processParams?.adjust_l ? "--adjust-l " + processParams.adjust_l  : ""} \
+		--ncpu ${task.cpus}
       	"""
 }
 
