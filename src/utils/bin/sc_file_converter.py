@@ -484,7 +484,11 @@ elif INPUT_FORMAT == 'loom' and OUTPUT_FORMAT == 'h5ad':
     # add clustering
     if 'clusterings' in dict_metadata:
         clustering_algorithm = dict_metadata['clusterings'][0]['group']
-        clustering_resolution = re.search(r'[0-9]+\.?[0-9]?$', dict_metadata['clusterings'][0]['name'])[0]
+        match_res = re.search(r'[0-9]+\.?[0-9]?$', dict_metadata['clusterings'][0]['name'])
+        if match_res:
+            clustering_resolution = re.search(r'[0-9]+\.?[0-9]?$', dict_metadata['clusterings'][0]['name'])[0]
+        else:
+            clustering_resolution = 0
         cluster_marker_method = re.search(r'Average log fold change from (.*)', dict_metadata['clusterings'][0]['clusterMarkerMetrics'][0]['description'])[1]
         
         adata.uns["rank_genes_groups"] = {}
