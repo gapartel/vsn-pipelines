@@ -507,8 +507,13 @@ elif INPUT_FORMAT == 'loom' and OUTPUT_FORMAT == 'h5ad':
         adata.uns["rank_genes_groups"]['names'] = {}
         adata.uns["rank_genes_groups"]['pvals_adj'] = {}
         adata.uns["rank_genes_groups"]['logfoldchanges'] = {}
-        
-        for clusid in range(len(np.unique(adata.obs[clustering_algorithm]))):
+
+        # get cluster id --> name mapping
+        map_clus_names = {}
+        for clus in dict_metadata['clusterings'][0]['clusters']:
+            map_clus_names[clus['id']] = clus['description'].replace('/', '_')
+            
+        for clusid in map_clus_names.values():
             adata.uns["rank_genes_groups"]['names'][clusid] = []
             adata.uns["rank_genes_groups"]['pvals_adj'][clusid] = []
             adata.uns["rank_genes_groups"]['logfoldchanges'][clusid] = []
@@ -520,10 +525,10 @@ elif INPUT_FORMAT == 'loom' and OUTPUT_FORMAT == 'h5ad':
                 if e != 0:
                     pval = row_attrs['ClusterMarkers_0_pval'][i][idx]
                     logfc = row_attrs['ClusterMarkers_0_avg_logFC'][i][idx]
-                        
-                    adata.uns["rank_genes_groups"]['names'][idx].append(gene)
-                    adata.uns["rank_genes_groups"]['pvals_adj'][idx].append(pval)
-                    adata.uns["rank_genes_groups"]['logfoldchanges'][idx].append(logfc)
+                    clusid = map_clus_names[idx]
+                    adata.uns["rank_genes_groups"]['names'][clusid].append(gene)
+                    adata.uns["rank_genes_groups"]['pvals_adj'][clusid].append(pval)
+                    adata.uns["rank_genes_groups"]['logfoldchanges'][clusid].append(logfc)
     
     # add embeddings
     map_embedding_names = {
