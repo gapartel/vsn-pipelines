@@ -498,20 +498,20 @@ elif INPUT_FORMAT == 'loom' and OUTPUT_FORMAT == 'h5ad':
         adata.uns[clustering_algorithm]["params"] = {}
         adata.uns[clustering_algorithm]["params"]["resolution"] = clustering_resolution
         adata.uns["rank_genes_groups"]["params"]["method"] = cluster_marker_method
-        
+
+        # get cluster id --> name mapping
+        map_clus_names = {}
+        for clus in dict_metadata['clusterings'][0]['clusters']:
+            map_clus_names[clus['id']] = clus['description'].replace('/', '_')
+            
         # add obs entry for clustering
-        adata.obs[clustering_algorithm] = [ clus[0] for clus in col_attrs['Clusterings'] ]
+        adata.obs[clustering_algorithm] = [ map_clus_names[clus[0]] for clus in col_attrs['Clusterings'] ]
         
         # add marker genes
         # init empty dict
         adata.uns["rank_genes_groups"]['names'] = {}
         adata.uns["rank_genes_groups"]['pvals_adj'] = {}
         adata.uns["rank_genes_groups"]['logfoldchanges'] = {}
-
-        # get cluster id --> name mapping
-        map_clus_names = {}
-        for clus in dict_metadata['clusterings'][0]['clusters']:
-            map_clus_names[clus['id']] = clus['description'].replace('/', '_')
             
         for clusid in map_clus_names.values():
             adata.uns["rank_genes_groups"]['names'][clusid] = []
