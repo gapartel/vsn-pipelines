@@ -10,6 +10,7 @@ import pandas as pd
 from pandas.core.dtypes.dtypes import CategoricalDtypeType
 import scanpy as sc
 import zlib
+import re
 
 parser = argparse.ArgumentParser(description='')
 
@@ -311,7 +312,17 @@ for adata_idx in range(0, len(FILE_PATHS_IN)):
             raise Exception("VSN ERROR: Currently there is no support for conversion of h5ad containing multiple clusterings.")
         else:
             clustering_algorithm = clustering_algorithm[0]
-    clustering_resolution = adatas[adata_idx].uns[clustering_algorithm]["params"]["resolution"]
+
+    match_res = re.search(r'[0-9]+\.?[0-9]?$', clustering_algorithm)
+    if match_res:
+        clustering_resolution = match_res[0]
+    else:
+        clustering_resolution = 0
+                    
+    if (clustering_algorithm in adatas[adata_idx].uns) and ('params' in adatas[adata_idx].uns[clustering_algorithm]):
+        if 'resolution' in adatas[adata_idx].uns[clustering_algorithm]["params"]:
+            clustering_resolution = adatas[adata_idx].uns[clustering_algorithm]["params"]["resolution"]
+
     cluster_marker_method = adatas[adata_idx].uns[SCANPY__CLUSTER_MARKER_DATA__ANNDATA_UNS_KEY]["params"]["method"]
 
     # Check if from AnnData 0.7.x
@@ -323,7 +334,13 @@ for adata_idx in range(0, len(FILE_PATHS_IN)):
     num_clusters = len(np.unique(adatas[adata_idx].obs[clustering_algorithm]))
 
     # Data
-    clusterings[str(clustering_id)] = adatas[adata_idx].obs[clustering_algorithm].values.astype(np.int64)
+    # create cluster mapping
+    map_clus_idx = {}
+    list_clusters = np.unique(adatas[adata_idx].obs[clustering_algorithm])
+    for cidx, clusname in enumerate(list_clusters):
+        map_clus_idx[clusname] = cidx
+        
+    clusterings[str(clustering_id)] = np.array([ map_clus_idx[clus] for clus in adatas[adata_idx].obs[clustering_algorithm].values ], dtype=np.int64)
 
     # Metadata
     attrs_metadata["clusterings"] = attrs_metadata["clusterings"] + [{
@@ -342,12 +359,15 @@ for adata_idx in range(0, len(FILE_PATHS_IN)):
                 "description": f"Adjusted P-Value from {cluster_marker_method.capitalize()} test"
             }
         ]
-    }]
-
-    for i in range(0, num_clusters):
+    }]    
+        
+    for i, clusname in enumerate(list_clusters):
         cluster = {}
         cluster['id'] = i
-        cluster['description'] = f'Unannotated Cluster {i}'
+        if clusname.isdigit():
+            cluster['description'] = f'Unannotated Cluster {i}'
+        else:
+            cluster['description'] = clusname
         attrs_metadata['clusterings'][clustering_id]['clusters'].append(cluster)
 
 # Update column attribute Dict
@@ -366,7 +386,6 @@ row_attrs = {
 }
 
 # CLUSTER MARKERS
-
 for adata_idx in range(0, len(FILE_PATHS_IN)):
 
     if SCANPY__CLUSTER_MARKER_DATA__ANNDATA_UNS_KEY not in adatas[adata_idx].uns:
@@ -391,10 +410,10 @@ for adata_idx in range(0, len(FILE_PATHS_IN)):
 
     # Populate
     for i in range(0, num_clusters):
-        i = str(i)
-        gene_names = adatas[adata_idx].uns[SCANPY__CLUSTER_MARKER_DATA__ANNDATA_UNS_KEY]['names'][i]
-        pvals_adj = adatas[adata_idx].uns[SCANPY__CLUSTER_MARKER_DATA__ANNDATA_UNS_KEY]['pvals_adj'][i]
-        logfoldchanges = adatas[adata_idx].uns[SCANPY__CLUSTER_MARKER_DATA__ANNDATA_UNS_KEY]['logfoldchanges'][i]
+        clusname = list_clusters[i]
+        gene_names = adatas[adata_idx].uns[SCANPY__CLUSTER_MARKER_DATA__ANNDATA_UNS_KEY]['names'][clusname]
+        pvals_adj = adatas[adata_idx].uns[SCANPY__CLUSTER_MARKER_DATA__ANNDATA_UNS_KEY]['pvals_adj'][clusname]
+        logfoldchanges = adatas[adata_idx].uns[SCANPY__CLUSTER_MARKER_DATA__ANNDATA_UNS_KEY]['logfoldchanges'][clusname]
         num_genes = len(gene_names)
         sig_genes_mask = pvals_adj < args.markers_fdr_threshold
         deg_genes_mask = np.logical_and(
@@ -426,7 +445,7 @@ for adata_idx in range(0, len(FILE_PATHS_IN)):
         )
         cluster_markers.loc[
             marker_genes_along_adata_mask,
-            i
+            str(i)
         ] = markers_df["is_marker"][marker_genes_along_adata]
 
         # Populate the marker gene log fold changes
@@ -437,7 +456,7 @@ for adata_idx in range(0, len(FILE_PATHS_IN)):
         )
         cluster_markers_avg_logfc.loc[
             marker_genes_along_adata_mask,
-            i
+            str(i)
         ] = logfoldchanges_df["logfc"][marker_genes_along_adata]
 
         # Populate the marker gene false discovery rates
@@ -448,7 +467,7 @@ for adata_idx in range(0, len(FILE_PATHS_IN)):
         )
         cluster_markers_pval.loc[
             marker_genes_along_adata_mask,
-            i
+            str(i)
         ] = pvals_adj_df["fdr"][marker_genes_along_adata]
 
     # Update row attribute Dict
