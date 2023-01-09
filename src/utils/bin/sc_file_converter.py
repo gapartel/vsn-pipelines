@@ -505,41 +505,42 @@ elif INPUT_FORMAT == 'loom' and OUTPUT_FORMAT == 'h5ad':
                     clustering_resolution = re.search(r'[0-9]+\.?[0-9]?$', clustering_name)[0]
                 else:
                     clustering_resolution = 0
-                    cluster_marker_method = re.search(r'Average log fold change from (.*)', dict_metadata['clusterings'][0]['clusterMarkerMetrics'][0]['description'])[1]
+                
+                cluster_marker_method = re.search(r'Average log fold change from (.*)', dict_metadata['clusterings'][0]['clusterMarkerMetrics'][0]['description'])[1]
             
-                    adata.uns["rank_genes_groups"] = {}
-                    adata.uns["rank_genes_groups"]["params"] = {}
-                    adata.uns["rank_genes_groups"]["params"]["groupby"] = clustering_algorithm
-                    adata.uns[clustering_algorithm] = {}
-                    adata.uns[clustering_algorithm]["params"] = {}
-                    adata.uns[clustering_algorithm]["params"]["resolution"] = clustering_resolution
-                    adata.uns["rank_genes_groups"]["params"]["method"] = cluster_marker_method
-
-                    # add marker genes
-                    # init empty dict
-                    adata.uns["rank_genes_groups"]['names'] = {}
-                    adata.uns["rank_genes_groups"]['pvals_adj'] = {}
-                    adata.uns["rank_genes_groups"]['logfoldchanges'] = {}
-        
-                    for clusid in map_clus_names.values():
-                        adata.uns["rank_genes_groups"]['names'][clusid] = []
-                        adata.uns["rank_genes_groups"]['pvals_adj'][clusid] = []
-                        adata.uns["rank_genes_groups"]['logfoldchanges'][clusid] = []
-            
-                        # get marker genes
-                        for i in range(len(row_attrs['ClusterMarkers_0'])):
-                            gene = row_attrs['Gene'][i]
-                            for idx, e in enumerate(row_attrs['ClusterMarkers_0'][i]):
-                                if e != 0:
-                                    pval = row_attrs['ClusterMarkers_0_pval'][i][idx]
-                                    logfc = row_attrs['ClusterMarkers_0_avg_logFC'][i][idx]
-                                    clusid = map_clus_names[idx]
-                                    adata.uns["rank_genes_groups"]['names'][clusid].append(gene)
-                                    adata.uns["rank_genes_groups"]['pvals_adj'][clusid].append(pval)
-                                    adata.uns["rank_genes_groups"]['logfoldchanges'][clusid].append(logfc)
-            
-                    # add obs entry for clustering
-                    adata.obs[clustering_algorithm] = [ map_clus_names[clus[clusidx]] for clus in col_attrs['Clusterings'] ]
+                adata.uns["rank_genes_groups"] = {}
+                adata.uns["rank_genes_groups"]["params"] = {}
+                adata.uns["rank_genes_groups"]["params"]["groupby"] = clustering_algorithm
+                adata.uns[clustering_algorithm] = {}
+                adata.uns[clustering_algorithm]["params"] = {}
+                adata.uns[clustering_algorithm]["params"]["resolution"] = clustering_resolution
+                adata.uns["rank_genes_groups"]["params"]["method"] = cluster_marker_method
+                
+                # add marker genes
+                # init empty dict
+                adata.uns["rank_genes_groups"]['names'] = {}
+                adata.uns["rank_genes_groups"]['pvals_adj'] = {}
+                adata.uns["rank_genes_groups"]['logfoldchanges'] = {}
+                
+                for clusid in map_clus_names.values():
+                    adata.uns["rank_genes_groups"]['names'][clusid] = []
+                    adata.uns["rank_genes_groups"]['pvals_adj'][clusid] = []
+                    adata.uns["rank_genes_groups"]['logfoldchanges'][clusid] = []
+                
+                # get marker genes
+                for i in range(len(row_attrs['ClusterMarkers_0'])):
+                    gene = row_attrs['Gene'][i]
+                    for idx, e in enumerate(row_attrs['ClusterMarkers_0'][i]):
+                        if e != 0:
+                            pval = row_attrs['ClusterMarkers_0_pval'][i][idx]
+                            logfc = row_attrs['ClusterMarkers_0_avg_logFC'][i][idx]
+                            clusid = map_clus_names[idx]
+                            adata.uns["rank_genes_groups"]['names'][clusid].append(gene)
+                            adata.uns["rank_genes_groups"]['pvals_adj'][clusid].append(pval)
+                            adata.uns["rank_genes_groups"]['logfoldchanges'][clusid].append(logfc)
+                
+                # add obs entry for clustering
+                adata.obs[clustering_algorithm] = [ map_clus_names[clus[clusidx]] for clus in col_attrs['Clusterings'] ]
             
             adata.obs[clustering_name] = [ map_clus_names[clus[clusidx]] for clus in col_attrs['Clusterings'] ]
             
