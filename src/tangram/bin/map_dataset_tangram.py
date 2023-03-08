@@ -173,7 +173,7 @@ if args.method == 'marker_genes':
         if not (hasattr(adata_ref, 'uns') and 'rank_genes_groups' in adata_ref.uns.keys()):
             raise Exception("VSN ERROR: 'rank_genes_groups' not found in reference data set. Should have been computed by workflow.")
         
-    for cluster in adata_ref.uns['rank_genes_groups']['pvals_adj'].keys():
+    for cluster in adata_ref.uns['rank_genes_groups']['pvals_adj'].dtype.names:
         list2 = get_best_markerGenes_for_cluster(adata_ref, cluster, max_genes=args.ngenes, thr_adjp=args.qvalue)
         gene_list  = gene_list + list(set(list2) - set(gene_list))
                 
