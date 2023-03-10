@@ -158,5 +158,23 @@ for varkey in adata_ref.var.keys():
     if isinstance(adata_ref.var[varkey][0], tuple):
         adata_ref.var[varkey] = [ str(tupl) for tupl in adata_ref.var[varkey] ]
 
+
+# store sparsity per cluster and index for genes
+dict_var_getIndex = { gene: i for i, gene in enumerate(adata_ref.var_names) }
+dict_sparse = {}
+
+for clus in np.unique(adata_ref.obs[args.anno]):
+    idx = adata_ref.obs.loc[ adata_ref.obs[args.anno] == clus].index
+    nclussize = len(idx)
+    # check whether X is ndarray otherwise assume it is sparse matrix
+    if type(adata_ref.X) == np.ndarray:
+        arr_nonzero = np.count_nonzero(np.array(adata_ref[idx].X), axis=0)
+    else:
+        arr_nonzero = np.count_nonzero(np.array(adata_ref[idx].X.todense()), axis=0)
+    dict_sparse[clus] = 1 - arr_nonzero / nclussize
+
+adata_ref.uns['var_getIndex'] = dict_var_getIndex
+adata_ref.uns[args.anno + '_sparsity'] = dict_sparse
+
 # write output
 adata_ref.write("{}.h5ad".format(FILE_PATH_OUT_BASENAME))

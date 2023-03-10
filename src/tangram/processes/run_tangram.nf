@@ -28,6 +28,7 @@ process TANGRAM__MAP_CELLTYPES {
 		${processParams?.gene_selection_method ? "-m " + processParams.gene_selection_method  : ""} \
 		${processParams?.number_genes ? "-n " + processParams.number_genes  : ""} \
 		${processParams?.qvalue ? "-q " + processParams.qvalue  : ""} \
+		${processParams?.max_sparsity ? "-s " + processParams.max_sparsity  : ""} \
 		${processParams?.mapping_mode ? "--mode " + processParams.mapping_mode  : ""} \
 		${processParams?.exp_scrnaseq ? "--exp-ref"  : ""} \
 		${f} \
@@ -136,6 +137,7 @@ process TANGRAM__COMPUTE_MAPPING {
 		${processParams?.gene_selection_method ? "-m " + processParams.gene_selection_method  : ""} \
 		${processParams?.number_genes ? "-n " + processParams.number_genes  : ""} \
 		${processParams?.qvalue ? "-q " + processParams.qvalue  : ""} \
+		${processParams?.max_sparsity ? "-s " + processParams.max_sparsity  : ""} \
 		${processParams?.mapping_mode ? "--mode " + processParams.mapping_mode  : ""} \
 		${processParams?.gene_list ? "--list_genes " + processParams.gene_list  : ""} \
 		${params.global.seed ? "--seed " + params.global.seed : ""} \

@@ -15,15 +15,21 @@ import random
 ### functions
 
 # function for selection marker genes per cluster
-def get_best_markerGenes_for_cluster(ad, cluster, max_genes=100, thr_adjp=0.01):
+def get_best_markerGenes_for_cluster(ad, cluster, sparsity_key, max_genes=100, thr_adjp=0.01, max_sparse=0.5):
 
     mgenes = list()
     ngenes = 0
     
     for pos in range(len(ad.uns['rank_genes_groups']['pvals_adj'][cluster])):
+
         p = ad.uns['rank_genes_groups']['pvals_adj'][cluster][pos]
-        if p < thr_adjp:
-            mgenes.append(str(ad.uns['rank_genes_groups']['names'][cluster][pos]))
+        gene_name = str(ad.uns['rank_genes_groups']['names'][cluster][pos])
+        idx_gene = ad.uns['var_getIndex'][gene_name]
+        
+        sparsity = adata_ref.uns[sparsity_key][cluster][idx_gene]
+        
+        if p < thr_adjp and sparsity <= max_sparse:
+            mgenes.append(gene_name)
             ngenes += 1
             
             if ngenes==max_genes:
@@ -89,7 +95,16 @@ parser.add_argument(
     dest='qvalue',
     type=float,
     default=0.01,
-    help="Min q-value to pick if selected from marker genes (default: %(default)s)"
+    help="Min q-value to pick gene if selected from marker genes (default: %(default)s)"
+)
+
+parser.add_argument(
+    '-s',
+    '--max-sparsity',
+    dest='maxsparse',
+    type=float,
+    default=0.5,
+    help="Max sparsity per cluster to pick gene if selected from marker genes (default: %(default)s)"
 )
 
 parser.add_argument(
@@ -172,9 +187,21 @@ if args.method == 'marker_genes':
     else:
         if not (hasattr(adata_ref, 'uns') and 'rank_genes_groups' in adata_ref.uns.keys()):
             raise Exception("VSN ERROR: 'rank_genes_groups' not found in reference data set. Should have been computed by workflow.")
-        
-    for cluster in adata_ref.uns['rank_genes_groups']['pvals_adj'].dtype.names:
-        list2 = get_best_markerGenes_for_cluster(adata_ref, cluster, max_genes=args.ngenes, thr_adjp=args.qvalue)
+    if type(adata_ref.uns['rank_genes_groups']['pvals_adj']) == dict:
+        cluster_names = adata_ref.uns['rank_genes_groups']['pvals_adj'].keys()
+    elif type(adata_ref.uns['rank_genes_groups']['pvals_adj']) == np.ndarray:
+        cluster_names = adata_ref.uns['rank_genes_groups']['pvals_adj'].dtype.names
+    else:
+        raise Exception("VSN ERROR: .uns['rank_genes_groups']['pvals_adj'] in reference has to be of type 'dict' or 'numpy.ndarray' including 'dtype.names'")
+
+    if 'var_getIndex' not in adata_ref.uns.keys():
+        raise Exception("VSN ERROR: .uns['var_getIndex'] not in reference")
+    sparse_key = args.anno + '_sparsity'
+    if sparse_key not in adata_ref.uns.keys():
+        raise Exception("VSN ERROR: .uns['" + sparse_key + "'] not in reference")
+    
+    for cluster in cluster_names:
+        list2 = get_best_markerGenes_for_cluster(adata_ref, cluster, sparsity_key=sparse_key, max_genes=args.ngenes, thr_adjp=args.qvalue, max_sparse=args.maxsparse)
         gene_list  = gene_list + list(set(list2) - set(gene_list))
                 
     if len(gene_list) < 1:
