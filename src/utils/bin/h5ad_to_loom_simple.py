@@ -280,6 +280,21 @@ if 'X_spatial' in adata.obsm.keys():
             "name": f"Spatial"
         }
     )
+# all other embeddings
+for key in adata.obsm.keys():
+    if key.startswith('X_'):
+        if key not in ['X_umap', 'X_tsne', 'X_pca', 'X_spatial']:
+            embedding_id = embeddings_x.shape[1] - 1
+            embeddings_x[str(embedding_id)] = adata.obsm[key][:, 0]
+            embeddings_y[str(embedding_id)] = adata.obsm[key][:, 1]
+            attrs_metadata['embeddings'].append(
+                {
+                    "id": embedding_id,
+                    "name": key
+                }
+            )
+
+
 
 # Update column attribute Dict
 col_attrs_embeddings = {
