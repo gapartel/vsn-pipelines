@@ -172,6 +172,7 @@ process TANGRAM__PROJECT_CELLTYPES {
 		--mapping ${mapping} \
 		${processParams?.annotation ? "-a " + processParams.annotation  : ""} \
 		${processParams?.normalize_celltype_scores ? "--normalize_map_scores " + processParams.normalize_celltype_scores  : ""} \
+		${processParams?.quantile_mapping_score ? "--quantile-score " + processParams.quantile_mapping_score  : ""} \
 		${f} \
       		${sampleId}.TANGRAM__CELLTYPES.${processParams.off}
       	"""

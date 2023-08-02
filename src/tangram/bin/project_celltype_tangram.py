@@ -19,6 +19,21 @@ def normalize01(x):
     newx = x - np.min(x)
     return newx / np.max(newx)
 
+# assign celltypes based on binary assignments, 'multiple' if more than one assignment
+def get_celltype_assigment(row):
+    
+    names = [str(name) for name in row.index[1:]]
+    summed = np.sum(row[1:])
+    
+    if summed == 0:
+        return 'none'
+    elif summed == 1:
+        idx = [i for i, val in enumerate(row[1:]) if val == True]
+        return names[idx[0]]
+    elif summed > 1:
+        return 'multiple'    
+
+
 
 ### options
 parser = argparse.ArgumentParser(description='')
@@ -66,6 +81,15 @@ parser.add_argument(
     choices=['true', 'false'],
     default='false',
     help="Normalize mapping scores to values between 0 and 1 (default: '%(default)s')"
+)
+
+parser.add_argument(
+    '-q',
+    '--quantile-score',
+    dest='quantile',
+    type=float,
+    default=0.95,
+    help="Score quantile for assigning cell type (default: '%(default)s')"
 )
 
 
@@ -118,6 +142,23 @@ idx = [np.array(df_annotations[df_annotations.index == cellid]).argmax() for cel
 best_celltypes = df_annotations.columns[idx]
 best_celltype_column_name = "tangram_best_" + args.anno
 
+# assign cell type by score quantile
+score_quantile = args.quantile
+anno_quant = "tangram_q" + str(score_quantile) + "_" + args.anno
+
+dict_thresholds = { ct:np.quantile(df_annotations[ct], score_quantile) for ct in df_annotations.columns }
+dict_assignment = {}
+dict_assignment['bc'] = df_annotations.index
+
+for ct in dict_thresholds.keys():
+    threshold = dict_thresholds[ct]
+    dict_assignment[ct] = [ True if score >= threshold else False for score in df_annotations[ct]]
+
+df_assigment = pd.DataFrame(dict_assignment)
+df_assigment = df_assigment.set_index('bc')
+adata_spatial.obs[anno_quant] = [ct for ct in df_assigment.apply( get_celltype_assigment, axis=1)]
+df_assigment = df_assigment * 1 # convert True/False to 1/0
+adata_spatial.obsm[anno_quant] = df_assigment
 
 # add cell type annotations use 'n_tangram_' prefix
 prefix = "n_tangram_"
