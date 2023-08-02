@@ -57,7 +57,7 @@ process TANGRAM__PREPARE_SCRNA {
 		${processParams?.annotation ? "-a " + processParams.annotation  : ""} \
 		${processParams?.gene_selection_method ? "-m " + processParams.gene_selection_method  : ""} \
 		${processParams?.rank_gene_method ? "--rank-gene-method " + processParams.rank_gene_method  : ""} \
-		${processParams?.normalize ? "--normalize " + processParams.normalize  : ""} \
+		${processParams?.normalize_scRNAseq ? "--normalize " + processParams.normalize_scRNAseq  : ""} \
 		${processParams?.max_cells ? "--max-cells-cluster " + processParams.max_cells  : ""} \
 		${params.global.seed ? "--seed " + params.global.seed : ""} \
 		${f} \
@@ -86,6 +86,7 @@ process TANGRAM__PREPARE_SPATIAL {
      	${binDir}/prepare_spatial_tangram.py \
 		${f} \
 		${filtered} \
+		${processParams?.normalize_spatial ? "--normalize " + processParams.normalize_spatial  : ""} \
       		${sampleId}.TANGRAM__SPATIAL.${processParams.off}
       	"""
 }
@@ -108,6 +109,7 @@ process TANGRAM__PREPARE_SPATIAL_SIMPLE {
       	"""
      	${binDir}/prepare_spatial_tangram_simple.py \
 		${f} \
+		${processParams?.normalize_spatial ? "--normalize " + processParams.normalize_spatial  : ""} \
       		${sampleId}.TANGRAM__SPATIAL.${processParams.off}
       	"""
 }

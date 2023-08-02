@@ -48,7 +48,7 @@ parser.add_argument(
     dest='do_normalize',
     choices=['true', 'false'],
     default='true',
-    help="Normalize data for computing gene rank groups."
+    help="log-normalize data, initial data will be copied to .raw."
 )
 
 parser.add_argument(
@@ -101,9 +101,11 @@ if args.seed:
 sc.pp.filter_cells(adata_ref, min_genes=1)
 sc.pp.filter_genes(adata_ref, min_cells=1)
 
-# copy expression data
-rawX = adata_ref.X.copy()
-
+# log-normalize
+if args.do_normalize == 'true':
+    adata_ref.raw = adata_ref
+    sc.pp.normalize_total(adata_ref, target_sum=1e4)
+    sc.pp.log1p(adata_ref)
     
 # get marker genes list
 gene_list = []
@@ -114,21 +116,11 @@ if args.method == 'marker_genes':
         raise Exception("VSN ERROR: Annotation '{}' not found in reference data set.".format(args.anno))
     else:
         if not (hasattr(adata_ref, 'uns') and 'rank_genes_groups' in adata_ref.uns.keys()):
-            # compute rank genes groups
-
-            # normalize
-            if args.do_normalize == 'true':
-                sc.pp.normalize_total(adata_ref)
-                
-            # get log for ranking genes
-            sc.pp.log1p(adata_ref)
-
+            
+            # compute rank genes groups                
             print("Computing 'rank_genes_groups' ...")
             sc.tl.rank_genes_groups(adata_ref, args.anno, method=args.method_rank_genes)
             print("Done.")
-
-            # copy back raw data
-            adata_ref.X = rawX.copy()
 
 # downsample anndata to max cells per cluster if option set
 if args.maxcells:

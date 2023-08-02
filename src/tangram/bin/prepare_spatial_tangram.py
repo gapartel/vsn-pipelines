@@ -31,6 +31,14 @@ parser.add_argument(
     help='Output spatial h5ad file.'
 )
 
+parser.add_argument(
+    "--normalize",
+    dest='do_normalize',
+    choices=['true', 'false'],
+    default='true',
+    help="log-normalize data, initial data will be copied to .raw."
+)
+
 
 args = parser.parse_args()
 
@@ -71,6 +79,13 @@ else:
 
 # add raw spatial data
 adata_spatial.X = adata_raw[:, adata_spatial.var.index].X.copy()
+
+# log-normalize
+if args.do_normalize == 'true':
+    adata_spatial.raw = adata_spatial
+    sc.pp.normalize_total(adata_spatial, target_sum=1e4)
+    sc.pp.log1p(adata_spatial)
+
 
 # write output
 adata_spatial.write_h5ad("{}.h5ad".format(FILE_PATH_OUT_BASENAME))

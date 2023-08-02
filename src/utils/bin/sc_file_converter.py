@@ -545,10 +545,9 @@ elif INPUT_FORMAT == 'loom' and OUTPUT_FORMAT == 'h5ad':
                                 adata.uns["rank_genes_groups"]['logfoldchanges'][clusid].append(logfc)
                 
                 # add obs entry for clustering
-                adata.obs[clustering_algorithm] = [ map_clus_names[clus[clusidx]] for clus in col_attrs['Clusterings'] ]
-            
-            adata.obs[clustering_name] = [ map_clus_names[clus[clusidx]] for clus in col_attrs['Clusterings'] ]
-            
+                adata.obs[clustering_algorithm] = [ map_clus_names[clus[clusidx]] if clus[clusidx] in map_clus_names.keys() else clus[clusidx] for clus in col_attrs['Clusterings'] ]
+
+            adata.obs[clustering_algorithm] = [ map_clus_names[clus[clusidx]] if clus[clusidx] in map_clus_names.keys() else clus[clusidx] for clus in col_attrs['Clusterings'] ]
     
     # add embeddings
     map_embedding_names = {
