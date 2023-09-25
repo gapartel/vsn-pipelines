@@ -34,6 +34,7 @@ process SC__H5AD_TO_LOOM {
 			${params.utils?.scope.tree.level_3.length() > 0  ? '--scope-tree-level-3 "' + params.utils.scope.tree.level_3 + '"'  : ''} \
 			${params.utils?.scope?.markers?.log_fc_threshold ? '--markers-log-fc-threshold ' + params.utils.scope.markers.log_fc_threshold : ''} \
 			${params.utils?.scope?.markers?.fdr_threshold ? '--markers-fdr-threshold ' + params.utils.scope.markers.fdr_threshold : ''} \
+                        ${params.utils?.scope?.clustering_names ? '--clustering-names ' + params.utils.scope.clustering_names : ''} \
 			$data \
 			$rawFilteredData \
 			"${sampleId}.SC__H5AD_TO_LOOM.loom"

@@ -1654,7 +1654,7 @@ workflow spage2vec_spage_label_transfer {
         SINGLE_SAMPLE;
     } from './src/scanpy/workflows/single_sample' params(params)
     include {
-        RUN_SPAGE2VEC;
+        RUN__MULTISAMPLE_SPAGE2VEC as RUN_SPAGE2VEC;
     } from "./src/spage2vec/workflows/spage2vec" params(params)
     include {
         PSEUDO_CELLS;
@@ -1692,8 +1692,7 @@ workflow spage2vec_spage_label_transfer {
     integration_res = SPAGE__DATA_INTEGRATION(
         SINGLE_SAMPLE.out.final_processed_data.map {
             it -> tuple(it[0], it[1])
-        },
-        ref_data.collectFile()
+        }.combine(ref_data.collectFile())
     )
 
     if (params.tools?.spage?.label_transfer==true){
