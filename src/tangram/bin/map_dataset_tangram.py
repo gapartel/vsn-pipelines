@@ -232,7 +232,9 @@ tg.pp_adatas(adata_ref, adata_spatial, genes=gene_list)
 
 # run tangram
 comput_device = str(args.device)
-if comput_device != "cpu":
+if comput_device == "any":
+    comput_device = "cuda: " + str(torch.cuda.current_device())
+elif comput_device != "cpu":
     comput_device = "cuda: " + comput_device
 
 adata_map = tg.map_cells_to_space(adata_ref, adata_spatial,
